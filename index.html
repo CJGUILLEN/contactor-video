@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contactor — Fotos a vídeo (sin FFmpeg)</title>
+<title>Contactor Pro — Fotos a vídeo con transiciones</title>
 <style>
 :root {
   --bg-base: #0b0908;
@@ -18,7 +18,6 @@
   --accent-soft: #e8792f26;
   --accent-strong: #ff9a4d;
   --danger: #d1503a;
-  --danger-soft: #d1503a22;
   --font-mono: 'Consolas', monospace;
 }
 *{box-sizing:border-box;}
@@ -37,30 +36,30 @@ select{font-family:var(--font-mono);}
 .topbar {
   display:flex;
   align-items:center;
-  gap:8px;
-  padding:8px 12px;
+  gap:6px;
+  padding:6px 10px;
   background:#1d1713;
   border-bottom:2px solid #2c231d;
   flex-wrap:wrap;
   flex-shrink:0;
-  min-height:56px;
+  min-height:50px;
 }
 .brand {
   display:flex;
   align-items:center;
-  gap:8px;
-  padding-right:12px;
+  gap:6px;
+  padding-right:10px;
   border-right:1px solid #2c231d;
 }
-.brand b{font-size:16px;}
-.brand span{font-size:9px;color:#6b6055;}
-.field{display:flex;flex-direction:column;gap:2px;}
-.field label{font-size:8px;text-transform:uppercase;color:#6b6055;}
-.field select{background:#241c17;border:1px solid #2c231d;color:#f2ece3;padding:4px 6px;border-radius:4px;font-size:10px;outline:none;max-width:90px;}
+.brand b{font-size:14px;}
+.brand span{font-size:8px;color:#6b6055;}
+.field{display:flex;flex-direction:column;gap:1px;}
+.field label{font-size:7px;text-transform:uppercase;color:#6b6055;}
+.field select{background:#241c17;border:1px solid #2c231d;color:#f2ece3;padding:3px 5px;border-radius:4px;font-size:9px;outline:none;max-width:80px;}
 .field select:focus{border-color:#e8792f;}
 .btn{
   background:#241c17;border:1px solid #2c231d;color:#f2ece3;
-  padding:6px 12px;border-radius:4px;font-size:11px;font-weight:600;
+  padding:4px 10px;border-radius:4px;font-size:9px;font-weight:600;
   cursor:pointer;white-space:nowrap;
 }
 .btn:hover{border-color:#6b6055;}
@@ -70,70 +69,79 @@ select{font-family:var(--font-mono);}
 .btn-danger:hover{background:#e8604a;border-color:#e8604a;}
 .btn:disabled{opacity:.4;cursor:not-allowed;}
 .spacer{flex:1;}
-.workspace{display:grid;grid-template-columns:240px 1fr;flex:1;min-height:0;overflow:hidden;}
+.checkbox-field{display:flex;align-items:center;gap:3px;font-size:8px;color:#9a8d7d;cursor:pointer;}
+.checkbox-field input{accent-color:#e8792f;width:10px;height:10px;}
+.workspace{display:grid;grid-template-columns:220px 1fr;flex:1;min-height:0;overflow:hidden;}
 .panel-left{background:#14100e;border-right:2px solid #2c231d;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
-.panel-head{padding:8px 12px 4px;border-bottom:1px solid #2c231d;flex-shrink:0;}
-.panel-head h2{font-size:11px;text-transform:uppercase;color:#6b6055;margin:0;}
+.panel-head{padding:6px 10px 3px;border-bottom:1px solid #2c231d;flex-shrink:0;}
+.panel-head h2{font-size:10px;text-transform:uppercase;color:#6b6055;margin:0;}
 .panel-head .count{color:#e8792f;}
-.dropzone{margin:6px 8px;padding:12px 8px;border:2px dashed #2c231d;border-radius:8px;text-align:center;color:#6b6055;font-size:11px;cursor:pointer;flex-shrink:0;}
+.dropzone{margin:5px 6px;padding:10px 6px;border:2px dashed #2c231d;border-radius:6px;text-align:center;color:#6b6055;font-size:9px;cursor:pointer;flex-shrink:0;}
 .dropzone.dragover{border-color:#e8792f;background:#e8792f26;}
-.dropzone strong{color:#9a8d7d;display:block;font-size:12px;}
+.dropzone strong{color:#9a8d7d;display:block;font-size:10px;}
 #input-archivos{display:none;}
-.lista-imagenes{flex:1;overflow-y:auto;padding:4px;}
-.lista-imagenes::-webkit-scrollbar{width:4px;}
-.lista-imagenes::-webkit-scrollbar-thumb{background:#2c231d;border-radius:4px;}
-.item-imagen{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;border:1px solid transparent;margin-bottom:2px;background:#1d1713;cursor:grab;}
+.lista-imagenes{flex:1;overflow-y:auto;padding:3px;}
+.lista-imagenes::-webkit-scrollbar{width:3px;}
+.lista-imagenes::-webkit-scrollbar-thumb{background:#2c231d;border-radius:3px;}
+.item-imagen{display:flex;align-items:center;gap:4px;padding:3px 4px;border-radius:4px;border:1px solid transparent;margin-bottom:1px;background:#1d1713;cursor:grab;}
 .item-imagen.activo{border-color:#e8792f;background:#e8792f26;}
-.item-imagen .miniatura{width:30px;height:30px;border-radius:4px;object-fit:cover;flex:none;background:#0b0908;border:1px solid #2c231d;}
+.item-imagen .miniatura{width:24px;height:24px;border-radius:3px;object-fit:cover;flex:none;background:#0b0908;border:1px solid #2c231d;}
 .item-imagen .info{flex:1;min-width:0;}
-.item-imagen .nombre{font-size:10px;color:#9a8d7d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.item-imagen .indice{color:#e8792f;font-weight:600;}
-.item-imagen select.duracion{background:#0b0908;color:#f2ece3;border:1px solid #2c231d;border-radius:3px;font-size:9px;padding:1px 3px;cursor:pointer;}
-.item-imagen .quitar{flex:none;padding:1px 4px;font-size:10px;}
-.panel-left-footer{padding:6px 12px;border-top:1px solid #2c231d;font-size:10px;color:#6b6055;display:flex;justify-content:space-between;flex-shrink:0;}
+.item-imagen .nombre{font-size:8px;color:#9a8d7d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.item-imagen .indice{color:#e8792f;font-weight:600;font-size:8px;}
+.item-imagen select.duracion{background:#0b0908;color:#f2ece3;border:1px solid #2c231d;border-radius:3px;font-size:7px;padding:0px 2px;cursor:pointer;}
+.item-imagen .quitar{flex:none;padding:0px 3px;font-size:9px;background:none;border:none;color:#d1503a;cursor:pointer;}
+.panel-left-footer{padding:4px 10px;border-top:1px solid #2c231d;font-size:8px;color:#6b6055;display:flex;justify-content:space-between;flex-shrink:0;}
 .panel-left-footer b{color:#9a8d7d;}
-.panel-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;min-height:0;gap:8px;position:relative;background:#0b0908;}
+.panel-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;min-height:0;gap:6px;position:relative;background:#0b0908;}
 .preview-stage{flex:1;width:100%;display:flex;align-items:center;justify-content:center;min-height:0;}
 .preview-marco{position:relative;background:#000;border:2px solid #2c231d;max-width:100%;max-height:100%;}
-#canvas-preview{display:block;max-width:100%;max-height:50vh;width:auto;height:auto;}
-.preview-vacio{color:#6b6055;text-align:center;font-size:14px;max-width:220px;line-height:1.6;}
-.preview-vacio .icono-vacio{opacity:.5;font-size:32px;display:block;margin-bottom:8px;}
-.preview-controles{display:flex;align-items:center;gap:10px;font-size:11px;color:#6b6055;flex-shrink:0;}
-.btn-play{width:32px;height:32px;border-radius:50%;background:#e8792f;border:none;color:#1a0f06;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
+#canvas-preview{display:block;max-width:100%;max-height:45vh;width:auto;height:auto;}
+.preview-vacio{color:#6b6055;text-align:center;font-size:12px;max-width:200px;line-height:1.5;}
+.preview-vacio .icono-vacio{opacity:.5;font-size:28px;display:block;margin-bottom:6px;}
+.preview-controles{display:flex;align-items:center;gap:8px;font-size:9px;color:#6b6055;flex-shrink:0;}
+.btn-play{width:28px;height:28px;border-radius:50%;background:#e8792f;border:none;color:#1a0f06;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
 .btn-play:hover{background:#ff9a4d;}
-.btn-play svg{width:12px;height:12px;}
-.estado-panel{position:absolute;top:6px;right:6px;left:6px;display:flex;justify-content:center;pointer-events:none;z-index:20;}
-.mensaje-error{pointer-events:auto;background:rgba(209,80,58,0.2);border:1px solid #d1503a;color:#ffd9cf;padding:6px 10px;border-radius:6px;font-size:11px;max-width:400px;display:flex;gap:6px;align-items:flex-start;}
-.mensaje-error button{background:none;border:none;color:#ffd9cf;cursor:pointer;font-size:14px;padding:0 0 0 4px;}
-.mensaje-aviso{pointer-events:auto;background:rgba(143,174,107,0.2);border:1px solid #8fae6b;color:#e2f0d6;padding:6px 10px;border-radius:6px;font-size:11px;max-width:400px;}
-.timeline-wrap{background:#14100e;border-top:2px solid #2c231d;padding:4px 0 0;flex-shrink:0;}
-.timeline-head{display:flex;justify-content:space-between;padding:0 12px 4px;font-size:9px;color:#6b6055;}
+.btn-play svg{width:10px;height:10px;}
+.estado-panel{position:absolute;top:4px;right:4px;left:4px;display:flex;justify-content:center;pointer-events:none;z-index:20;}
+.mensaje-error{pointer-events:auto;background:rgba(209,80,58,0.2);border:1px solid #d1503a;color:#ffd9cf;padding:4px 8px;border-radius:6px;font-size:9px;max-width:350px;display:flex;gap:4px;align-items:flex-start;}
+.mensaje-error button{background:none;border:none;color:#ffd9cf;cursor:pointer;font-size:12px;padding:0 0 0 3px;}
+.mensaje-aviso{pointer-events:auto;background:rgba(143,174,107,0.2);border:1px solid #8fae6b;color:#e2f0d6;padding:4px 8px;border-radius:6px;font-size:9px;max-width:350px;}
+.timeline-wrap{background:#14100e;border-top:2px solid #2c231d;padding:3px 0 0;flex-shrink:0;}
+.timeline-head{display:flex;justify-content:space-between;padding:0 10px 3px;font-size:8px;color:#6b6055;}
 .timeline-head b{color:#9a8d7d;}
-.filmstrip{position:relative;background:#050403;padding:4px 0;overflow-x:auto;overflow-y:hidden;white-space:nowrap;}
-.sprockets{height:4px;background-image:repeating-linear-gradient(to right,#14100e 0 4px,transparent 4px 10px);background-size:10px 100%;}
+.filmstrip{position:relative;background:#050403;padding:3px 0;overflow-x:auto;overflow-y:hidden;white-space:nowrap;}
+.sprockets{height:3px;background-image:repeating-linear-gradient(to right,#14100e 0 3px,transparent 3px 8px);background-size:8px 100%;}
 .sprockets.top{border-bottom:1px solid #000;}
 .sprockets.bottom{border-top:1px solid #000;}
-.pista{display:flex;align-items:stretch;height:44px;padding:0 12px;}
-.segmento{flex:none;height:100%;background-size:cover;background-position:center;border-right:2px solid #050403;position:relative;cursor:pointer;display:flex;align-items:flex-end;min-width:6px;}
+.pista{display:flex;align-items:stretch;height:38px;padding:0 10px;}
+.segmento{flex:none;height:100%;background-size:cover;background-position:center;border-right:2px solid #050403;position:relative;cursor:pointer;display:flex;align-items:flex-end;min-width:5px;}
 .segmento.activo{outline:2px solid #e8792f;outline-offset:-2px;z-index:2;}
-.segmento .etiqueta{width:100%;background:linear-gradient(to top,#000000cc,transparent);color:#fff;font-size:7px;padding:1px 3px;white-space:nowrap;overflow:hidden;}
-.timeline-vacio{padding:12px;text-align:center;color:#6b6055;font-size:11px;}
-.export-bar{display:none;align-items:center;gap:8px;padding:6px 12px;background:#1d1713;border-top:1px solid #2c231d;font-size:10px;flex-shrink:0;}
+.segmento .etiqueta{width:100%;background:linear-gradient(to top,#000000cc,transparent);color:#fff;font-size:6px;padding:1px 2px;white-space:nowrap;overflow:hidden;}
+.marca-click{flex:none;width:6px;height:100%;display:flex;align-items:center;justify-content:center;position:relative;}
+.marca-click .linea{width:1px;height:25%;background:#e8792f;opacity:.6;}
+.marca-click .icono{position:absolute;top:1px;color:#e8792f;font-size:4px;}
+.timeline-vacio{padding:10px;text-align:center;color:#6b6055;font-size:9px;}
+.export-bar{display:none;align-items:center;gap:6px;padding:4px 10px;background:#1d1713;border-top:1px solid #2c231d;font-size:9px;flex-shrink:0;}
 .export-bar.visible{display:flex;}
-.export-bar .barra-fondo{flex:1;height:4px;background:#0b0908;border-radius:4px;overflow:hidden;border:1px solid #2c231d;}
+.export-bar .barra-fondo{flex:1;height:4px;background:#0b0908;border-radius:3px;overflow:hidden;border:1px solid #2c231d;}
 .export-bar .barra-rellena{height:100%;width:0%;background:linear-gradient(90deg,#e8792f,#ff9a4d);transition:width .15s ease;}
-.export-bar .etapa{color:#6b6055;min-width:100px;}
-.export-bar .porcentaje{color:#e8792f;min-width:30px;text-align:right;}
-::-webkit-scrollbar{height:4px;width:4px;}
-::-webkit-scrollbar-thumb{background:#2c231d;border-radius:4px;}
+.export-bar .etapa{color:#6b6055;min-width:90px;}
+.export-bar .porcentaje{color:#e8792f;min-width:28px;text-align:right;}
+::-webkit-scrollbar{height:3px;width:3px;}
+::-webkit-scrollbar-thumb{background:#2c231d;border-radius:2px;}
+.duracion-generica{display:flex;gap:4px;padding:3px 10px;background:#1d1713;border-bottom:1px solid #2c231d;flex-wrap:wrap;flex-shrink:0;align-items:center;}
+.duracion-generica label{font-size:7px;text-transform:uppercase;color:#6b6055;}
+.duracion-generica select{background:#0b0908;color:#f2ece3;border:1px solid #2c231d;border-radius:3px;font-size:8px;padding:1px 3px;}
+.duracion-generica .btn{padding:1px 6px;font-size:8px;}
 </style>
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <span style="font-size:20px;">📷</span>
-    <div><b>Contactor</b><br><span>Fotos → Vídeo</span></div>
+    <span style="font-size:18px;">📷</span>
+    <div><b>Contactor Pro</b><br><span>Fotos → Vídeo</span></div>
   </div>
 
   <div class="field">
@@ -154,6 +162,43 @@ select{font-family:var(--font-mono);}
     </select>
   </div>
 
+  <div class="field">
+    <label>Transición</label>
+    <select id="sel-transicion">
+      <option value="fade">Fundido</option>
+      <option value="slideleft">Deslizar izq</option>
+      <option value="slideright">Deslizar der</option>
+      <option value="slideup">Deslizar arriba</option>
+      <option value="slidedown">Deslizar abajo</option>
+      <option value="circleopen">Círculo abrir</option>
+      <option value="circleclose">Círculo cerrar</option>
+      <option value="hflip">Volteo horiz</option>
+      <option value="vflip">Volteo vert</option>
+      <option value="fadeblack">Fundido a negro</option>
+      <option value="fadewhite">Fundido a blanco</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Sonido</label>
+    <select id="sel-tipo-obturador">
+      <option value="clasico">Réflex</option>
+      <option value="digital">Digital</option>
+      <option value="grave">Grave</option>
+    </select>
+  </div>
+  <button class="btn" id="btn-preview-audio">🔊</button>
+
+  <label class="checkbox-field">
+    <input type="checkbox" id="chk-flash"> Flash B/N
+  </label>
+
+  <div class="field">
+    <label>Música</label>
+    <input type="file" id="input-musica" accept="audio/*" style="display:none;">
+    <button class="btn" id="btn-musica" style="padding:2px 6px;">🎵</button>
+  </div>
+
   <div class="spacer"></div>
 
   <button class="btn btn-primary" id="btn-exportar" disabled>⬇ Exportar</button>
@@ -165,9 +210,9 @@ select{font-family:var(--font-mono);}
       <h2>Imágenes <span class="count" id="contador-imagenes">0/70</span></h2>
     </div>
 
-    <div style="display:flex;gap:6px;padding:4px 12px;background:#1d1713;border-bottom:1px solid #2c231d;flex-wrap:wrap;flex-shrink:0;align-items:center;">
-      <label style="font-size:9px;text-transform:uppercase;color:#6b6055;">Duración:</label>
-      <select id="duracion-generica-select" style="background:#0b0908;color:#f2ece3;border:1px solid #2c231d;border-radius:3px;font-size:10px;padding:2px 4px;">
+    <div class="duracion-generica">
+      <label>Duración:</label>
+      <select id="duracion-generica-select">
         <option value="0.2">0.2s</option>
         <option value="0.35">0.35s</option>
         <option value="0.5">0.5s</option>
@@ -175,7 +220,7 @@ select{font-family:var(--font-mono);}
         <option value="2">2s</option>
         <option value="3">3s</option>
       </select>
-      <button class="btn" id="btn-aplicar-duracion" style="padding:2px 8px;font-size:9px;">Aplicar</button>
+      <button class="btn" id="btn-aplicar-duracion">Aplicar</button>
     </div>
 
     <div class="dropzone" id="dropzone" tabindex="0">
@@ -226,19 +271,25 @@ select{font-family:var(--font-mono);}
     <span class="etapa" id="export-etapa">Preparando…</span>
     <div class="barra-fondo"><div class="barra-rellena" id="export-barra"></div></div>
     <span class="porcentaje" id="export-porcentaje">0%</span>
-    <button class="btn" id="btn-cancelar-export" style="padding:2px 8px;">Cancelar</button>
+    <button class="btn" id="btn-cancelar-export">Cancelar</button>
   </div>
 </footer>
 
 <script>
 // ============================================================
-// CONTACTOR — VERSIÓN SIN FFMPEG (USANDO MediaRecorder)
+// CONTACTOR PRO — VERSIÓN CON TRANSICIONES Y MÚSICA (SIN FFMPEG)
 // ============================================================
 
+// ===== ESTADO =====
 const estado = {
   imagenes: [],
   ratio: "9:16",
   calidad: "1080",
+  transicion: "fade",
+  tipoObturador: "clasico",
+  flash: false,
+  musica: null,
+  musicaUrl: null,
   indiceActivo: -1,
   reproduciendo: false,
   exportando: false,
@@ -273,6 +324,12 @@ const elDuracionGenericaSelect = $("#duracion-generica-select");
 const elBtnAplicarDuracion = $("#btn-aplicar-duracion");
 const elSelRatio = $("#sel-ratio");
 const elSelCalidad = $("#sel-calidad");
+const elSelTransicion = $("#sel-transicion");
+const elSelTipoObturador = $("#sel-tipo-obturador");
+const elBtnPreviewAudio = $("#btn-preview-audio");
+const elChkFlash = $("#chk-flash");
+const elInputMusica = $("#input-musica");
+const elBtnMusica = $("#btn-musica");
 const elCanvas = $("#canvas-preview");
 const elCtx = elCanvas.getContext("2d");
 const elPreviewMarco = $("#preview-marco");
@@ -294,6 +351,8 @@ let contadorId = 0;
 function generarId(){ return "img-" + (++contadorId) + "-" + Date.now().toString(36); }
 function formatoSegundos(s){ return s.toFixed(1).replace(/\.0$/, "") + "s"; }
 function pad(numero, ceros){ return String(numero).padStart(ceros, "0"); }
+function lerp(a, b, t){ return a + (b - a) * t; }
+function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
 
 function rellenarOpcionesDuracion(selectEl, valorSeleccionado){
   selectEl.innerHTML = "";
@@ -383,13 +442,13 @@ function renderizarLista(){
     li.dataset.id = item.id;
 
     li.innerHTML = `
-      <span style="color:#6b6055;font-size:10px;user-select:none;">⠿</span>
+      <span style="color:#6b6055;font-size:9px;user-select:none;">⠿</span>
       <img class="miniatura" src="${item.url}" alt="">
       <div class="info">
         <div class="nombre"><span class="indice">${pad(indice + 1, 2)}</span> ${item.nombre}</div>
         <select class="duracion"></select>
       </div>
-      <button class="quitar" style="background:none;border:none;color:#d1503a;cursor:pointer;font-size:12px;">✕</button>
+      <button class="quitar">✕</button>
     `;
 
     const selectDuracion = li.querySelector(".duracion");
@@ -486,16 +545,211 @@ elBtnAplicarDuracion.addEventListener("click", () => {
   mostrarAviso(`Duración de ${formatoSegundos(duracion)} aplicada.`);
 });
 
+// ===== CONTROLES =====
+elSelRatio.addEventListener("change", (e) => {
+  estado.ratio = e.target.value;
+  dibujarPreviewActivo();
+});
+elSelCalidad.addEventListener("change", (e) => {
+  estado.calidad = e.target.value;
+  dibujarPreviewActivo();
+});
+elSelTransicion.addEventListener("change", (e) => {
+  estado.transicion = e.target.value;
+});
+elSelTipoObturador.addEventListener("change", (e) => {
+  estado.tipoObturador = e.target.value;
+});
+elChkFlash.addEventListener("change", (e) => {
+  estado.flash = e.target.checked;
+  refrescarTimeline();
+});
+
+// ===== MÚSICA =====
+elBtnMusica.addEventListener("click", () => elInputMusica.click());
+elInputMusica.addEventListener("change", (e) => {
+  const archivo = e.target.files[0];
+  if (archivo) {
+    if (estado.musicaUrl) URL.revokeObjectURL(estado.musicaUrl);
+    estado.musica = archivo;
+    estado.musicaUrl = URL.createObjectURL(archivo);
+    mostrarAviso(`🎵 Música: ${archivo.name}`);
+  }
+});
+
+// ===== AUDIO (OBTURADOR) =====
+let audioCtxVivo = null;
+function obtenerAudioCtxVivo(){
+  if (!audioCtxVivo) audioCtxVivo = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtxVivo;
+}
+
+const PERFILES_OBTURADOR = {
+  clasico: { freqRuido: 3200, qRuido: 0.9, durRuido: 0.045,
+    golpes: [{retardo:0, freqIni:1800, freqFin:120, dur:0.02, ganancia:0.35},
+             {retardo:0.038, freqIni:1400, freqFin:90, dur:0.015, ganancia:0.22}]},
+  digital: { freqRuido: 5200, qRuido: 1.4, durRuido: 0.02,
+    golpes: [{retardo:0, freqIni:3200, freqFin:900, dur:0.008, ganancia:0.3}]},
+  grave: { freqRuido: 900, qRuido: 0.6, durRuido: 0.075,
+    golpes: [{retardo:0, freqIni:500, freqFin:60, dur:0.035, ganancia:0.4},
+             {retardo:0.05, freqIni:300, freqFin:50, dur:0.03, ganancia:0.25}]},
+};
+
+function programarClickObturador(ctx, tiempo, tipo){
+  tipo = tipo || "clasico";
+  const perfil = PERFILES_OBTURADOR[tipo] || PERFILES_OBTURADOR.clasico;
+  const sr = ctx.sampleRate;
+
+  const bufferRuido = ctx.createBuffer(1, Math.ceil(sr * perfil.durRuido), sr);
+  const datos = bufferRuido.getChannelData(0);
+  for (let i = 0; i < datos.length; i++) datos[i] = Math.random() * 2 - 1;
+
+  const fuenteRuido = ctx.createBufferSource();
+  fuenteRuido.buffer = bufferRuido;
+  const filtro = ctx.createBiquadFilter();
+  filtro.type = "bandpass";
+  filtro.frequency.value = perfil.freqRuido;
+  filtro.Q.value = perfil.qRuido;
+  const gananciaRuido = ctx.createGain();
+  gananciaRuido.gain.setValueAtTime(0.0001, tiempo);
+  gananciaRuido.gain.exponentialRampToValueAtTime(0.8, tiempo + 0.003);
+  gananciaRuido.gain.exponentialRampToValueAtTime(0.0001, tiempo + perfil.durRuido);
+  fuenteRuido.connect(filtro).connect(gananciaRuido).connect(ctx.destination);
+  fuenteRuido.start(tiempo);
+  fuenteRuido.stop(tiempo + perfil.durRuido);
+
+  perfil.golpes.forEach(golpe => {
+    const t0 = tiempo + golpe.retardo;
+    const osc = ctx.createOscillator();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(golpe.freqIni, t0);
+    osc.frequency.exponentialRampToValueAtTime(golpe.freqFin, t0 + golpe.dur);
+    const gananciaOsc = ctx.createGain();
+    gananciaOsc.gain.setValueAtTime(golpe.ganancia, t0);
+    gananciaOsc.gain.exponentialRampToValueAtTime(0.0001, t0 + golpe.dur);
+    osc.connect(gananciaOsc).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + golpe.dur);
+  });
+}
+
+elBtnPreviewAudio.addEventListener("click", () => {
+  const ctx = obtenerAudioCtxVivo();
+  if (ctx.state === "suspended") ctx.resume();
+  programarClickObturador(ctx, ctx.currentTime + 0.02, estado.tipoObturador);
+});
+
 // ===== DIBUJO =====
-function dibujarImagenEnContexto(ctx, img, ancho, alto){
+function dibujarImagenEnContexto(ctx, img, ancho, alto, modo, enBlancoYNegro){
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, ancho, alto);
-  const escala = Math.max(ancho/img.width, alto/img.height);
+  const escala = modo === "cover" ? Math.max(ancho/img.width, alto/img.height) : Math.min(ancho/img.width, alto/img.height);
   const nw = img.width * escala;
   const nh = img.height * escala;
   const x = (ancho - nw) / 2;
   const y = (alto - nh) / 2;
+  if (enBlancoYNegro) ctx.filter = "grayscale(1)";
   ctx.drawImage(img, x, y, nw, nh);
+  ctx.filter = "none";
+}
+
+// ===== TRANSICIONES =====
+function aplicarTransicion(ctx, imgA, imgB, progreso, tipo, ancho, alto){
+  // Limpiar
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, ancho, alto);
+  
+  const p = clamp(progreso, 0, 1);
+  
+  // Dibujar imagen A (sale)
+  ctx.save();
+  ctx.globalAlpha = 1 - p;
+  dibujarImagenEnContexto(ctx, imgA, ancho, alto, "cover");
+  ctx.restore();
+  
+  // Dibujar imagen B (entra) con transición
+  ctx.save();
+  
+  switch(tipo){
+    case 'fade':
+      ctx.globalAlpha = p;
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      break;
+      
+    case 'slideleft':
+      ctx.translate(-ancho * (1 - p), 0);
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      break;
+      
+    case 'slideright':
+      ctx.translate(ancho * (1 - p), 0);
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      break;
+      
+    case 'slideup':
+      ctx.translate(0, -alto * (1 - p));
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      break;
+      
+    case 'slidedown':
+      ctx.translate(0, alto * (1 - p));
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      break;
+      
+    case 'circleopen':
+      const radio = Math.max(ancho, alto) * p;
+      ctx.beginPath();
+      ctx.arc(ancho/2, alto/2, radio, 0, Math.PI * 2);
+      ctx.clip();
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      break;
+      
+    case 'circleclose':
+      const radioC = Math.max(ancho, alto) * (1 - p);
+      ctx.beginPath();
+      ctx.arc(ancho/2, alto/2, radioC, 0, Math.PI * 2);
+      ctx.clip();
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      break;
+      
+    case 'hflip':
+      const scaleX = 1 - 2 * p;
+      ctx.translate(ancho/2, alto/2);
+      ctx.scale(scaleX, 1);
+      ctx.translate(-ancho/2, -alto/2);
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      break;
+      
+    case 'vflip':
+      const scaleY = 1 - 2 * p;
+      ctx.translate(ancho/2, alto/2);
+      ctx.scale(1, scaleY);
+      ctx.translate(-ancho/2, -alto/2);
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      break;
+      
+    case 'fadeblack':
+      ctx.globalAlpha = 1;
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      ctx.globalAlpha = p;
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, ancho, alto);
+      break;
+      
+    case 'fadewhite':
+      ctx.globalAlpha = 1;
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+      ctx.globalAlpha = p;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, ancho, alto);
+      break;
+      
+    default: // fade
+      ctx.globalAlpha = p;
+      dibujarImagenEnContexto(ctx, imgB, ancho, alto, "cover");
+  }
+  
+  ctx.restore();
 }
 
 function dibujarPreviewActivo(){
@@ -508,12 +762,12 @@ function dibujarPreviewActivo(){
   elPreviewVacio.style.display = "none";
 
   const [ancho, alto] = dimensionesActuales();
-  const escalaPreview = Math.min(1, 800 / Math.max(ancho, alto));
+  const escalaPreview = Math.min(1, 600 / Math.max(ancho, alto));
   elCanvas.width = Math.round(ancho * escalaPreview);
   elCanvas.height = Math.round(alto * escalaPreview);
 
   const item = estado.imagenes[estado.indiceActivo];
-  dibujarImagenEnContexto(elCtx, item.img, elCanvas.width, elCanvas.height);
+  dibujarImagenEnContexto(elCtx, item.img, elCanvas.width, elCanvas.height, "cover");
   elPreviewInfo.textContent = `${pad(estado.indiceActivo+1,2)} de ${pad(estado.imagenes.length,2)} · ${formatoSegundos(item.duracion)}`;
 }
 
@@ -529,6 +783,9 @@ function reproducirPreview(){
   estado.reproduciendo = true;
   elBtnPlay.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>`;
 
+  const ctx = obtenerAudioCtxVivo();
+  if (ctx.state === "suspended") ctx.resume();
+
   let i = estado.indiceActivo >= 0 ? estado.indiceActivo : 0;
   const pasoSiguiente = () => {
     if (!estado.reproduciendo || i >= estado.imagenes.length){
@@ -542,6 +799,23 @@ function reproducirPreview(){
     const esUltima = i === estado.imagenes.length - 1;
 
     temporizadorPreview = setTimeout(() => {
+      if (!esUltima){
+        programarClickObturador(ctx, ctx.currentTime + 0.01, estado.tipoObturador);
+        if (estado.flash){
+          // Mostrar flash B/N por un instante
+          const flashCanvas = document.createElement("canvas");
+          flashCanvas.width = elCanvas.width;
+          flashCanvas.height = elCanvas.height;
+          const flashCtx = flashCanvas.getContext("2d");
+          dibujarImagenEnContexto(flashCtx, item.img, flashCanvas.width, flashCanvas.height, "cover", true);
+          elCtx.drawImage(flashCanvas, 0, 0);
+          setTimeout(() => {
+            if (estado.reproduciendo) i++;
+            pasoSiguiente();
+          }, 200);
+          return;
+        }
+      }
       i++;
       pasoSiguiente();
     }, item.duracion * 1000);
@@ -556,7 +830,7 @@ function detenerPreview(){
 }
 
 // ===== TIMELINE =====
-const PIXELES_POR_SEGUNDO = 100;
+const PIXELES_POR_SEGUNDO = 80;
 
 function refrescarTimeline(){
   elPista.innerHTML = "";
@@ -571,7 +845,7 @@ function refrescarTimeline(){
   estado.imagenes.forEach((item, indice) => {
     const segmento = document.createElement("div");
     segmento.className = "segmento" + (indice === estado.indiceActivo ? " activo" : "");
-    segmento.style.width = Math.max(12, item.duracion * PIXELES_POR_SEGUNDO) + "px";
+    segmento.style.width = Math.max(10, item.duracion * PIXELES_POR_SEGUNDO) + "px";
     segmento.style.backgroundImage = `url("${item.url}")`;
     segmento.dataset.indice = indice;
     segmento.innerHTML = `<span class="etiqueta">${pad(indice+1,2)} · ${formatoSegundos(item.duracion)}</span>`;
@@ -582,18 +856,22 @@ function refrescarTimeline(){
       refrescarTimeline();
     });
     elPista.appendChild(segmento);
+
+    if (indice < estado.imagenes.length - 1){
+      const marca = document.createElement("div");
+      marca.className = "marca-click";
+      marca.innerHTML = `<span class="linea"></span><span class="icono">●</span>`;
+      elPista.appendChild(marca);
+      if (estado.flash){
+        const flashMarca = document.createElement("div");
+        flashMarca.className = "marca-click";
+        flashMarca.style.width = "8px";
+        flashMarca.innerHTML = `<span style="font-size:5px;color:#fff;">⚡</span>`;
+        elPista.appendChild(flashMarca);
+      }
+    }
   });
 }
-
-// ===== CONTROLES =====
-elSelRatio.addEventListener("change", (e) => {
-  estado.ratio = e.target.value;
-  dibujarPreviewActivo();
-});
-elSelCalidad.addEventListener("change", (e) => {
-  estado.calidad = e.target.value;
-  dibujarPreviewActivo();
-});
 
 // ===== REFRESCO GENERAL =====
 function refrescarTodo(){
@@ -603,7 +881,7 @@ function refrescarTodo(){
   refrescarTimeline();
 }
 
-// ===== EXPORTACIÓN (USANDO MediaRecorder) =====
+// ===== EXPORTACIÓN (CON TRANSICIONES Y MÚSICA) =====
 function actualizarBarraExportacion(porcentaje, etapa){
   elExportBarra.style.width = Math.min(100, Math.max(0, porcentaje)) + "%";
   elExportPorcentaje.textContent = Math.round(porcentaje) + "%";
@@ -629,6 +907,8 @@ async function exportarVideo(){
   try {
     const [ancho, alto] = dimensionesActuales();
     const duracionTotal = estado.imagenes.reduce((acc, it) => acc + it.duracion, 0);
+    const duracionTransicion = 0.3;
+    const fps = FPS;
     
     actualizarBarraExportacion(5, "Preparando canvas...");
     const canvas = document.createElement("canvas");
@@ -636,7 +916,7 @@ async function exportarVideo(){
     canvas.height = alto;
     const ctx = canvas.getContext("2d");
     
-    const stream = canvas.captureStream(FPS);
+    const stream = canvas.captureStream(fps);
     const recorder = new MediaRecorder(stream, {
       mimeType: 'video/webm;codecs=vp9',
       videoBitsPerSecond: 5000000
@@ -648,21 +928,43 @@ async function exportarVideo(){
     
     let tiempoRenderizado = 0;
     let totalFrames = 0;
+    const totalDuracion = duracionTotal + (estado.imagenes.length - 1) * duracionTransicion;
     
-    for (const item of estado.imagenes) {
+    // Renderizar cada imagen con transición
+    for (let i = 0; i < estado.imagenes.length; i++) {
       if (estado.cancelarExportacion) throw new Error("cancelado");
       
-      const frames = Math.round(item.duracion * FPS);
-      for (let f = 0; f < frames; f++) {
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, ancho, alto);
-        dibujarImagenEnContexto(ctx, item.img, ancho, alto);
+      const item = estado.imagenes[i];
+      const esUltima = i === estado.imagenes.length - 1;
+      
+      // Duración de la imagen (sin transición al final)
+      const duracionImagen = item.duracion;
+      const framesImagen = Math.round(duracionImagen * fps);
+      
+      // Renderizar la imagen fija
+      for (let f = 0; f < framesImagen; f++) {
+        dibujarImagenEnContexto(ctx, item.img, ancho, alto, "cover");
         totalFrames++;
+        const progreso = (totalFrames / (totalDuracion * fps)) * 70 + 10;
+        actualizarBarraExportacion(progreso, `Renderizando ${Math.round(totalFrames/fps)}s de ${totalDuracion.toFixed(1)}s`);
       }
       
-      tiempoRenderizado += item.duracion;
-      const progreso = (tiempoRenderizado / duracionTotal) * 70 + 10;
-      actualizarBarraExportacion(progreso, `Renderizando ${Math.round(tiempoRenderizado)}s de ${duracionTotal.toFixed(1)}s`);
+      // Transición a la siguiente imagen (si no es la última)
+      if (!esUltima) {
+        const siguiente = estado.imagenes[i + 1];
+        const framesTransicion = Math.round(duracionTransicion * fps);
+        
+        for (let f = 0; f < framesTransicion; f++) {
+          const progreso = f / framesTransicion;
+          aplicarTransicion(ctx, item.img, siguiente.img, progreso, estado.transicion, ancho, alto);
+          totalFrames++;
+          const p = (totalFrames / (totalDuracion * fps)) * 70 + 10;
+          actualizarBarraExportacion(p, `Transición ${i+1}→${i+2} ${Math.round(progreso*100)}%`);
+        }
+        
+        // Click de obturador en el momento del corte
+        programarClickObturador(obtenerAudioCtxVivo(), totalFrames / fps, estado.tipoObturador);
+      }
     }
     
     recorder.stop();
