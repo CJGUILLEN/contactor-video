@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contactor — Fotos a vídeo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base: #0b0908;
+  --bg-panel: #14100e;
+  --bg-elevated: #1d1713;
+  --bg-elevated-2: #241c17;
+  --line: #2c231d;
+  --line-soft: #201a15;
+  --text: #f2ece3;
+  --text-muted: #9a8d7d;
+  --text-faint: #6b6055;
+  --accent: #e8792f;
+  --accent-soft: #e8792f26;
+  --accent-strong: #ff9a4d;
+  --ok: #8fae6b;
+  --ok-soft: #8fae6b22;
+  --danger: #d1503a;
+  --danger-soft: #d1503a22;
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{
+  background:var(--bg-base);
+  color:var(--text);
+  font-family:var(--font-display);
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+button{font-family:inherit;}
+select, input{font-family:var(--font-mono);}
+.topbar {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:4px 8px;
+  background:var(--bg-elevated);
+  border-bottom:2px solid var(--line);
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  flex-shrink:0;
+  min-height:54px;
+  position:relative;
+  z-index:10;
+}
+.brand {
+  display:flex;
+  align-items:center;
+  gap:4px;
+  padding-right:6px;
+  border-right:1px solid var(--line);
+  flex-shrink:0;
+}
+.brand .aperture{width:16px;height:16px;flex:none;}
+.brand .aperture svg{display:block;}
+.brand-text{display:flex;flex-direction:column;line-height:1;}
+.brand-text b{font-size:11px;font-weight:700;}
+.brand-text span{font-size:6px;color:var(--text-faint);font-family:var(--font-mono);letter-spacing:.06em;text-transform:uppercase;}
+.field {
+  display:flex;
+  flex-direction:column;
+  gap:0px;
+  flex-shrink:0;
+}
+.field label {
+  font-family:var(--font-mono);
+  font-size:6px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+}
+.field select, .field .chip-group {
+  background:var(--bg-elevated-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  padding:2px 4px;
+  border-radius:var(--radius-s);
+  font-size:8px;
+  outline:none;
+  cursor:pointer;
+  max-width:90px;
+}
+.field select:focus-visible{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft);}
+.field select option{background:var(--bg-elevated);}
+.chip-group{display:flex;gap:1px;padding:1px;}
+.chip {
+  border:none;
+  background:transparent;
+  color:var(--text-muted);
+  padding:1px 4px;
+  border-radius:2px;
+  font-size:7px;
+  cursor:pointer;
+  font-family:var(--font-mono);
+}
+.chip.active{background:var(--accent);color:#1a0f06;font-weight:600;}
+.chip:hover:not(.active){color:var(--text);}
+.topbar .spacer{flex:1;min-width:4px;}
+.checkbox-field {
+  display:flex;
+  align-items:center;
+  gap:2px;
+  font-size:7px;
+  color:var(--text-muted);
+  cursor:pointer;
+  user-select:none;
+  font-family:var(--font-mono);
+  flex-shrink:0;
+}
+.checkbox-field input{accent-color:var(--accent);width:9px;height:9px;cursor:pointer;}
+.btn {
+  font-family:var(--font-display);
+  border:1px solid var(--line);
+  background:var(--bg-elevated-2);
+  color:var(--text);
+  padding:2px 6px;
+  border-radius:var(--radius-s);
+  font-size:8px;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+  transition:border-color .15s, transform .05s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.btn:hover{border-color:var(--text-faint);}
+.btn:active{transform:translateY(1px);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-primary {
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#1a0f06;
+}
+.btn-primary:hover{background:var(--accent-strong);border-color:var(--accent-strong);}
+.btn-danger-ghost{color:var(--danger);border-color:transparent;background:transparent;padding:0px 2px;}
+.btn-danger-ghost:hover{background:var(--danger-soft);}
+.btn-sm{padding:1px 4px;font-size:7px;}
+.workspace {
+  display:grid;
+  grid-template-columns:220px 1fr;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+}
+.panel-left {
+  background:var(--bg-panel);
+  border-right:2px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  overflow:hidden;
+}
+.panel-head {
+  padding:4px 8px 2px;
+  border-bottom:1px solid var(--line-soft);
+  flex-shrink:0;
+}
+.panel-head h2 {
+  margin:0;
+  font-size:8px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+  font-family:var(--font-mono);
+  font-weight:600;
+}
+.panel-head .count{color:var(--accent);}
+.duracion-generica {
+  display:flex;
+  align-items:center;
+  gap:3px;
+  padding:2px 8px;
+  background:var(--bg-elevated-2);
+  border-bottom:1px solid var(--line-soft);
+  flex-shrink:0;
+  flex-wrap:wrap;
+}
+.duracion-generica label {
+  font-family:var(--font-mono);
+  font-size:6px;
+  text-transform:uppercase;
+  color:var(--text-faint);
+  white-space:nowrap;
+}
+.duracion-generica select {
+  background:var(--bg-base);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:2px;
+  font-size:7px;
+  padding:0px 2px;
+  cursor:pointer;
+}
+.duracion-generica .btn {
+  padding:0px 4px;
+  font-size:7px;
+}
+.dropzone {
+  margin:4px 5px;
+  padding:6px 4px;
+  border:1.5px dashed var(--line);
+  border-radius:var(--radius-m);
+  text-align:center;
+  color:var(--text-faint);
+  font-size:7px;
+  cursor:pointer;
+  transition:border-color .15s, background .15s;
+  flex-shrink:0;
+}
+.dropzone.dragover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-strong);}
+.dropzone strong{color:var(--text-muted);display:block;margin-bottom:1px;font-size:8px;}
+#input-archivos{display:none;}
+.lista-imagenes {
+  flex:1;
+  overflow-y:auto;
+  padding:2px 2px 4px;
+  min-height:0;
+}
+.lista-imagenes::-webkit-scrollbar{width:3px;}
+.lista-imagenes::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px;}
+.item-imagen {
+  display:flex;
+  align-items:center;
+  gap:2px;
+  padding:2px 2px;
+  border-radius:var(--radius-s);
+  border:1px solid transparent;
+  margin-bottom:1px;
+  background:var(--bg-elevated);
+  cursor:grab;
+}
+.item-imagen.activo {
+  border-color:var(--accent);
+  background:var(--accent-soft);
+}
+.item-imagen.arrastrando{opacity:.35;}
+.item-imagen.drag-over-top{box-shadow:inset 0 2px 0 var(--accent);}
+.item-imagen.drag-over-bottom{box-shadow:inset 0 -2px 0 var(--accent);}
+.handle {
+  color:var(--text-faint);
+  font-size:6px;
+  letter-spacing:1px;
+  padding:0 1px;
+  user-select:none;
+  flex:none;
+}
+.item-imagen .miniatura {
+  width:18px;
+  height:18px;
+  border-radius:2px;
+  object-fit:cover;
+  flex:none;
+  background:var(--bg-base);
+  border:1px solid var(--line-soft);
+}
+.item-imagen .info {
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:0px;
+}
+.item-imagen .nombre {
+  font-size:6.5px;
+  color:var(--text-muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.item-imagen .indice {
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-weight:600;
+  font-size:6px;
+}
+.item-imagen select.duracion {
+  background:var(--bg-base);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:2px;
+  font-size:6px;
+  padding:0px 1px;
+  cursor:pointer;
+}
+.item-imagen .quitar{flex:none;padding:0px 2px;font-size:6px;}
+.panel-left-footer {
+  padding:2px 8px;
+  border-top:1px solid var(--line-soft);
+  font-family:var(--font-mono);
+  font-size:6px;
+  color:var(--text-faint);
+  display:flex;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.panel-left-footer b{color:var(--text-muted);}
+.panel-center {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:8px;
+  min-height:0;
+  gap:4px;
+  position:relative;
+  background:var(--bg-base);
+}
+.preview-stage {
+  flex:1;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:0;
+}
+.preview-marco {
+  position:relative;
+  background:#000;
+  border:2px solid var(--line);
+  box-shadow:0 30px 60px -20px #000000cc;
+  max-width:100%;
+  max-height:100%;
+}
+#canvas-preview {
+  display:block;
+  max-width:100%;
+  max-height:45vh;
+  width:auto;
+  height:auto;
+}
+.preview-vacio {
+  color:var(--text-faint);
+  text-align:center;
+  font-family:var(--font-mono);
+  font-size:9px;
+  max-width:180px;
+  line-height:1.5;
+}
+.preview-vacio .icono-vacio{opacity:.5;margin-bottom:3px;font-size:18px;}
+.preview-controles {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-family:var(--font-mono);
+  font-size:7px;
+  color:var(--text-muted);
+  flex-shrink:0;
+}
+.btn-play {
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:var(--accent);
+  border:none;
+  color:#1a0f06;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  flex:none;
+}
+.btn-play:hover{background:var(--accent-strong);}
+.btn-play svg{width:8px;height:8px;}
+.estado-panel {
+  position:absolute;
+  top:3px;
+  right:3px;
+  left:3px;
+  display:flex;
+  justify-content:center;
+  pointer-events:none;
+  z-index:20;
+}
+.mensaje-error {
+  pointer-events:auto;
+  background:var(--danger-soft);
+  border:1px solid var(--danger);
+  color:#ffd9cf;
+  padding:3px 5px;
+  border-radius:var(--radius-m);
+  font-size:8px;
+  max-width:320px;
+  font-family:var(--font-mono);
+  display:flex;
+  gap:3px;
+  align-items:flex-start;
+}
+.mensaje-error button {
+  background:none;
+  border:none;
+  color:#ffd9cf;
+  cursor:pointer;
+  font-size:9px;
+  line-height:1;
+  padding:0 0 0 2px;
+  flex:none;
+}
+.mensaje-aviso {
+  pointer-events:auto;
+  background:var(--ok-soft);
+  border:1px solid var(--ok);
+  color:#e2f0d6;
+  padding:3px 5px;
+  border-radius:var(--radius-m);
+  font-size:8px;
+  max-width:320px;
+  font-family:var(--font-mono);
+}
+.timeline-wrap {
+  background:var(--bg-panel);
+  border-top:2px solid var(--line);
+  padding:2px 0 0;
+  flex-shrink:0;
+}
+.timeline-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 8px 1px;
+  font-family:var(--font-mono);
+  font-size:6px;
+  color:var(--text-faint);
+}
+.timeline-head b{color:var(--text-muted);}
+.timeline-head .leyenda{display:flex;gap:4px;align-items:center;}
+.leyenda-item{display:flex;align-items:center;gap:1px;}
+.leyenda-swatch{width:4px;height:4px;border-radius:1px;}
+.filmstrip {
+  position:relative;
+  background:#050403;
+  padding:2px 0;
+  overflow-x:auto;
+  overflow-y:hidden;
+  white-space:nowrap;
+}
+.sprockets {
+  height:2px;
+  background-image:repeating-linear-gradient(to right, var(--bg-panel) 0 2px, transparent 2px 5px);
+  background-size:5px 100%;
+}
+.sprockets.top{border-bottom:1px solid #000;}
+.sprockets.bottom{border-top:1px solid #000;}
+.pista {
+  display:flex;
+  align-items:stretch;
+  height:32px;
+  padding:0 8px;
+  position:relative;
+}
+.segmento {
+  flex:none;
+  height:100%;
+  background-size:cover;
+  background-position:center;
+  border-right:2px solid #050403;
+  position:relative;
+  cursor:pointer;
+  display:flex;
+  align-items:flex-end;
+  min-width:4px;
+}
+.segmento.activo{outline:2px solid var(--accent);outline-offset:-2px;z-index:2;}
+.segmento .etiqueta {
+  width:100%;
+  background:linear-gradient(to top, #000000cc, transparent);
+  color:#fff;
+  font-family:var(--font-mono);
+  font-size:4px;
+  padding:0px 1px;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.marca-click {
+  flex:none;
+  width:5px;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+.marca-click .linea{
+  width:1px;
+  height:25%;
+  background:var(--accent);
+  opacity:.6;
+}
+.marca-click .icono{
+  position:absolute;
+  top:0px;
+  color:var(--accent);
+  font-size:3px;
+}
+.marca-click.con-flash .linea{background:#fff;opacity:.9;}
+.segmento-flash {
+  flex:none;
+  height:100%;
+  min-width:3px;
+  background:repeating-linear-gradient(45deg,#000 0 1px,#666 1px 2px,#fff 2px 4px,#666 4px 6px);
+  border-right:2px solid #050403;
+  position:relative;
+}
+.segmento-flash .etiqueta-bn {
+  position:absolute;
+  bottom:0px;
+  left:0px;
+  right:0px;
+  color:#fff;
+  font-family:var(--font-mono);
+  font-size:3px;
+  text-shadow:0 1px 2px #000;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.leyenda-swatch-bn {
+  width:4px;
+  height:4px;
+  border-radius:1px;
+  background:linear-gradient(135deg,#000 45%,#fff 55%);
+  border:1px solid #444;
+}
+.timeline-vacio {
+  padding:6px;
+  text-align:center;
+  color:var(--text-faint);
+  font-family:var(--font-mono);
+  font-size:7px;
+}
+.export-bar {
+  display:none;
+  align-items:center;
+  gap:4px;
+  padding:2px 8px;
+  background:var(--bg-elevated);
+  border-top:1px solid var(--line);
+  font-family:var(--font-mono);
+  font-size:7px;
+  flex-shrink:0;
+}
+.export-bar.visible{display:flex;}
+.export-bar .barra-fondo {
+  flex:1;
+  height:3px;
+  background:var(--bg-base);
+  border-radius:2px;
+  overflow:hidden;
+  border:1px solid var(--line);
+}
+.export-bar .barra-rellena {
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,var(--accent),var(--accent-strong));
+  transition:width .15s ease;
+}
+.export-bar .etapa{color:var(--text-muted);min-width:80px;}
+.export-bar .porcentaje{color:var(--accent);min-width:20px;text-align:right;}
+::-webkit-scrollbar{height:3px;width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px;}
+@media (max-width:880px){
+  .workspace{grid-template-columns:1fr;}
+  .panel-left{
+    border-right:none;
+    border-bottom:2px solid var(--line);
+    max-height:28vh;
+  }
+  .topbar{flex-wrap:wrap;min-height:auto;}
+}
+@media (max-width:700px){
+  .topbar{gap:2px;padding:2px 4px;}
+  .topbar .field label{font-size:5px;}
+  .topbar select{font-size:6px;padding:0px 2px;max-width:50px;}
+  .btn{font-size:6px;padding:1px 3px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== BARRA SUPERIOR ===== -->
+<header class="topbar">
+  <div class="brand">
+    <span class="aperture">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#e8792f" stroke-width="1.4"/><path d="M12 4v5M12 15v5M4 12h5M15 12h5M6.3 6.3l3.5 3.5M14.2 14.2l3.5 3.5M17.7 6.3l-3.5 3.5M9.8 14.2l-3.5 3.5" stroke="#e8792f" stroke-width="1.2"/></svg>
+    </span>
+    <div class="brand-text">
+      <b>Contactor</b>
+      <span>Fotos → Vídeo</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="sel-ratio">Formato</label>
+    <select id="sel-ratio">
+      <option value="9:16">9:16</option>
+      <option value="16:9">16:9</option>
+      <option value="1:1">1:1</option>
+      <option value="4:5">4:5</option>
+      <option value="4:3">4:3</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="sel-calidad">Calidad</label>
+    <select id="sel-calidad">
+      <option value="1080">1080p</option>
+      <option value="4k">4K</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Ajuste</label>
+    <div class="chip-group" id="grupo-ajuste">
+      <button type="button" class="chip active" data-modo="cover">Recortar</button>
+      <button type="button" class="chip" data-modo="contain">Ajustar</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="sel-transicion">Transición</label>
+    <select id="sel-transicion">
+      <option value="fade">Fundido</option>
+      <option value="slideleft">Deslizar izq.</option>
+      <option value="slideright">Deslizar der.</option>
+      <option value="slideup">Deslizar arriba</option>
+      <option value="slidedown">Deslizar abajo</option>
+      <option value="circleopen">Círculo abrir</option>
+      <option value="circleclose">Círculo cerrar</option>
+      <option value="hflip">Volteo horiz.</option>
+      <option value="vflip">Volteo vert.</option>
+      <option value="fadeblack">Fundido a negro</option>
+      <option value="fadewhite">Fundido a blanco</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Salida</label>
+    <div class="checkbox-field" style="padding:1px 2px;">
+      <label class="checkbox-field"><input type="checkbox" id="chk-webm"> WebM</label>
+    </div>
+  </div>
+
+  <label class="checkbox-field" title="Flash en blanco y negro">
+    <input type="checkbox" id="chk-flash">
+    Flash
+  </label>
+  <div class="field">
+    <label for="sel-duracion-flash">Dur.</label>
+    <select id="sel-duracion-flash" disabled></select>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="field">
+    <label for="sel-tipo-obturador">Sonido</label>
+    <select id="sel-tipo-obturador">
+      <option value="clasico">Réflex</option>
+      <option value="digital">Digital</option>
+      <option value="grave">Grave</option>
+    </select>
+  </div>
+  <button class="btn" id="btn-preview-audio" title="Probar sonido">🔊</button>
+
+  <div class="field">
+    <label for="input-musica">Música</label>
+    <input type="file" id="input-musica" accept="audio/*" style="display: none;">
+    <button class="btn" id="btn-musica" style="padding:1px 5px;">🎵</button>
+    <span id="nombre-musica" style="font-size:6px;color:var(--text-faint);max-width:40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    <button class="btn-danger-ghost" id="btn-quitar-musica" style="display:none;padding:0px 2px;">✕</button>
+  </div>
+
+  <div class="field">
+    <label for="vol-musica">Vol.</label>
+    <input type="range" id="vol-musica" min="0" max="100" value="40" style="width:30px;background:var(--bg-elevated-2);">
+  </div>
+
+  <button class="btn btn-primary" id="btn-exportar" disabled>
+    ⤓ Exportar
+  </button>
+</header>
+
+<!-- ===== CUERPO ===== -->
+<div class="workspace">
+
+  <!-- PANEL IZQUIERDO -->
+  <aside class="panel-left">
+    <div class="panel-head">
+      <h2>Imágenes <span class="count" id="contador-imagenes">0/70</span></h2>
+    </div>
+
+    <div class="duracion-generica">
+      <label>Duración:</label>
+      <select id="duracion-generica-select">
+        <option value="0.2">0.2s</option>
+        <option value="0.35">0.35s</option>
+        <option value="0.5">0.5s</option>
+        <option value="1" selected>1s</option>
+        <option value="2">2s</option>
+        <option value="3">3s</option>
+      </select>
+      <button class="btn btn-sm" id="btn-aplicar-duracion">Aplicar</button>
+    </div>
+
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Subir imágenes">
+      <strong>Arrastra fotos</strong>
+      o haz clic (JPG · PNG · WEBP)
+    </div>
+    <input type="file" id="input-archivos" accept="image/jpeg,image/png,image/webp" multiple>
+
+    <div class="lista-imagenes" id="lista-imagenes"></div>
+
+    <div class="panel-left-footer">
+      <span>Duración: <b id="duracion-total">0.0 s</b></span>
+      <span id="etiqueta-fps">30 fps</span>
+    </div>
+  </aside>
+
+  <!-- PANEL CENTRAL -->
+  <main class="panel-center">
+    <div class="estado-panel" id="estado-panel"></div>
+
+    <div class="preview-stage">
+      <div class="preview-marco" id="preview-marco">
+        <canvas id="canvas-preview" width="1080" height="1920"></canvas>
+      </div>
+      <div class="preview-vacio" id="preview-vacio">
+        <div class="icono-vacio">◐</div>
+        Sube imágenes para empezar.
+      </div>
+    </div>
+
+    <div class="preview-controles">
+      <button class="btn-play" id="btn-play" aria-label="Reproducir preview">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <span id="preview-info">—</span>
+    </div>
+  </main>
+</div>
+
+<!-- ===== TIMELINE INFERIOR ===== -->
+<footer class="timeline-wrap">
+  <div class="timeline-head">
+    <span><b>Línea de tiempo</b> · clic para ver</span>
+    <div class="leyenda">
+      <span class="leyenda-item"><span class="leyenda-swatch" style="background:var(--accent)"></span>click</span>
+      <span class="leyenda-item"><span class="leyenda-swatch-bn"></span>flash</span>
+    </div>
+  </div>
+  <div class="sprockets top"></div>
+  <div class="filmstrip" id="filmstrip">
+    <div class="timeline-vacio" id="timeline-vacio">— sin fotogramas —</div>
+    <div class="pista" id="pista" style="display:none;"></div>
+  </div>
+  <div class="sprockets bottom"></div>
+
+  <div class="export-bar" id="export-bar">
+    <span class="etapa" id="export-etapa">Preparando…</span>
+    <div class="barra-fondo"><div class="barra-rellena" id="export-barra"></div></div>
+    <span class="porcentaje" id="export-porcentaje">0%</span>
+    <button class="btn" id="btn-cancelar-export" style="padding:1px 5px;">Cancelar</button>
+  </div>
+</footer>
+
+<script type="module">
+// ============================================================
+// CONTACTOR — VERSIÓN OPERATIVA DEFINITIVA
+// ============================================================
+
+// 0. IMPORTACIÓN DE FFMPEG - VERSIÓN QUE SÍ FUNCIONA
+let FFmpeg, fetchFile, toBlobURL;
+
+async function cargarLibreriaFFmpeg() {
+  try {
+    // Esta versión funciona con Live Server y no da error de Worker
+    const { FFmpeg: FFmpegLib } = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/esm/index.js');
+    const { fetchFile: fetchFileLib, toBlobURL: toBlobURLLib } = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js');
+    
+    FFmpeg = FFmpegLib;
+    fetchFile = fetchFileLib;
+    toBlobURL = toBlobURLLib;
+    
+    console.log("✅ FFmpeg cargado correctamente");
+    return true;
+  } catch (error) {
+    console.error("Error al cargar FFmpeg:", error);
+    throw new Error("No se pudo cargar FFmpeg. Verifica tu conexión a internet.");
+  }
+}
+
+// 1. ESTADO
+const estado = {
+  imagenes: [],
+  ratio: "9:16",
+  calidad: "1080",
+  ajuste: "cover",
+  flash: false,
+  duracionFlash: 0.2,
+  tipoObturador: "clasico",
+  incluirWebm: false,
+  indiceActivo: -1,
+  reproduciendo: false,
+  exportando: false,
+  cancelarExportacion: false,
+  transicion: "fade",
+  archivoMusica: null,
+  urlMusica: null,
+  volumenMusica: 0.4,
+};
+
+const FPS = 30;
+const MAX_IMAGENES = 70;
+const DURACIONES_DISPONIBLES = [0.2, 0.35, 0.5, 1, 2, 3];
+
+const DIMENSIONES = {
+  "1080": {
+    "16:9": [1920, 1080], "9:16": [1080, 1920], "1:1": [1080, 1080],
+    "4:5":  [1080, 1350], "4:3":  [1440, 1080],
+  },
+  "4k": {
+    "16:9": [3840, 2160], "9:16": [2160, 3840], "1:1": [2160, 2160],
+    "4:5":  [2160, 2700], "4:3":  [2880, 2160],
+  },
+};
+
+function dimensionesActuales(){
+  return DIMENSIONES[estado.calidad][estado.ratio];
+}
+
+// 2. DOM
+const $ = (sel) => document.querySelector(sel);
+
+const elDropzone       = $("#dropzone");
+const elInputArchivos  = $("#input-archivos");
+const elListaImagenes  = $("#lista-imagenes");
+const elContador       = $("#contador-imagenes");
+const elDuracionTotal  = $("#duracion-total");
+const elDuracionGenericaSelect = $("#duracion-generica-select");
+const elBtnAplicarDuracion = $("#btn-aplicar-duracion");
+
+const elSelRatio    = $("#sel-ratio");
+const elSelCalidad  = $("#sel-calidad");
+const elGrupoAjuste = $("#grupo-ajuste");
+const elChkWebm     = $("#chk-webm");
+const elChkFlash    = $("#chk-flash");
+const elSelDuracionFlash  = $("#sel-duracion-flash");
+const elSelTipoObturador  = $("#sel-tipo-obturador");
+const elSelTransicion     = $("#sel-transicion");
+const elInputMusica       = $("#input-musica");
+const elBtnMusica         = $("#btn-musica");
+const elNombreMusica      = $("#nombre-musica");
+const elBtnQuitarMusica   = $("#btn-quitar-musica");
+const elVolMusica         = $("#vol-musica");
+
+const elCanvas       = $("#canvas-preview");
+const elCtx          = elCanvas.getContext("2d");
+const elPreviewMarco = $("#preview-marco");
+const elPreviewVacio = $("#preview-vacio");
+const elPreviewInfo  = $("#preview-info");
+const elBtnPlay      = $("#btn-play");
+
+const elEstadoPanel  = $("#estado-panel");
+
+const elFilmstrip     = $("#filmstrip");
+const elPista         = $("#pista");
+const elTimelineVacio = $("#timeline-vacio");
+
+const elBtnExportar   = $("#btn-exportar");
+const elBtnPreviewAudio = $("#btn-preview-audio");
+const elExportBar      = $("#export-bar");
+const elExportEtapa    = $("#export-etapa");
+const elExportBarra    = $("#export-barra");
+const elExportPorcentaje = $("#export-porcentaje");
+const elBtnCancelarExport = $("#btn-cancelar-export");
+
+// 3. UTILIDADES
+let contadorId = 0;
+function generarId(){ return "img-" + (++contadorId) + "-" + Date.now().toString(36); }
+function formatoSegundos(s){ return s.toFixed(1).replace(/\.0$/, "") + "s"; }
+function pad(numero, ceros){ return String(numero).padStart(ceros, "0"); }
+
+function rellenarOpcionesDuracion(selectEl, valorSeleccionado){
+  selectEl.innerHTML = "";
+  DURACIONES_DISPONIBLES.forEach((d) => {
+    const opt = document.createElement("option");
+    opt.value = d;
+    opt.textContent = formatoSegundos(d);
+    if (d === valorSeleccionado) opt.selected = true;
+    selectEl.appendChild(opt);
+  });
+}
+
+function mostrarError(mensaje){
+  const div = document.createElement("div");
+  div.className = "mensaje-error";
+  div.innerHTML = `<span>⚠ ${mensaje}</span>`;
+  const btnCerrar = document.createElement("button");
+  btnCerrar.textContent = "✕";
+  btnCerrar.setAttribute("aria-label", "Cerrar aviso");
+  btnCerrar.onclick = () => div.remove();
+  div.appendChild(btnCerrar);
+  elEstadoPanel.appendChild(div);
+  return div;
+}
+
+function mostrarAviso(mensaje, duracionMs = 4000){
+  const div = document.createElement("div");
+  div.className = "mensaje-aviso";
+  div.textContent = mensaje;
+  elEstadoPanel.appendChild(div);
+  if (duracionMs) setTimeout(() => div.remove(), duracionMs);
+  return div;
+}
+
+function pedirConfirmacion(mensaje){
+  return new Promise((resolve) => {
+    const div = document.createElement("div");
+    div.className = "mensaje-error";
+    div.style.flexDirection = "column";
+    div.style.alignItems = "stretch";
+    div.innerHTML = `<span>⚠ ${mensaje}</span>`;
+    const fila = document.createElement("div");
+    fila.style.cssText = "display:flex; gap:6px; margin-top:6px; justify-content:flex-end;";
+    const btnSeguir = document.createElement("button");
+    btnSeguir.className = "btn btn-primary";
+    btnSeguir.style.padding = "3px 8px";
+    btnSeguir.textContent = "Continuar";
+    const btnCancelar = document.createElement("button");
+    btnCancelar.className = "btn";
+    btnCancelar.style.padding = "3px 8px";
+    btnCancelar.textContent = "Cancelar";
+    btnSeguir.onclick = () => { div.remove(); resolve(true); };
+    btnCancelar.onclick = () => { div.remove(); resolve(false); };
+    fila.append(btnCancelar, btnSeguir);
+    div.appendChild(fila);
+    elEstadoPanel.appendChild(div);
+  });
+}
+
+// 4. CARGA DE IMÁGENES
+elDropzone.addEventListener("click", () => elInputArchivos.click());
+elDropzone.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); elInputArchivos.click(); }
+});
+elDropzone.addEventListener("dragover", (e) => { e.preventDefault(); elDropzone.classList.add("dragover"); });
+elDropzone.addEventListener("dragleave", () => elDropzone.classList.remove("dragover"));
+elDropzone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  elDropzone.classList.remove("dragover");
+  manejarNuevosArchivos(e.dataTransfer.files);
+});
+elInputArchivos.addEventListener("change", (e) => {
+  manejarNuevosArchivos(e.target.files);
+  elInputArchivos.value = "";
+});
+
+function manejarNuevosArchivos(fileList){
+  const archivos = Array.from(fileList).filter(f => /^image\/(jpeg|png|webp)$/.test(f.type));
+  if (archivos.length === 0) return;
+
+  const espacioDisponible = MAX_IMAGENES - estado.imagenes.length;
+  if (espacioDisponible <= 0){
+    mostrarError(`Ya has alcanzado el máximo de ${MAX_IMAGENES} imágenes.`);
+    return;
+  }
+  if (archivos.length > espacioDisponible){
+    mostrarAviso(`Solo se añadirán ${espacioDisponible} imágenes (límite de ${MAX_IMAGENES}).`);
+  }
+
+  archivos.slice(0, espacioDisponible).forEach(cargarImagen);
+}
+
+function cargarImagen(archivo){
+  const url = URL.createObjectURL(archivo);
+  const img = new Image();
+  img.onload = () => {
+    const entrada = {
+      id: generarId(),
+      archivo,
+      url,
+      img,
+      duracion: 1,
+      nombre: archivo.name,
+    };
+    estado.imagenes.push(entrada);
+    if (estado.indiceActivo === -1) estado.indiceActivo = 0;
+    refrescarTodo();
+  };
+  img.onerror = () => {
+    mostrarError(`No se pudo leer la imagen "${archivo.name}". Puede estar dañada.`);
+  };
+  img.src = url;
+}
+
+// 5. LISTA DE IMÁGENES
+let idArrastrado = null;
+
+function renderizarLista(){
+  elListaImagenes.innerHTML = "";
+  estado.imagenes.forEach((item, indice) => {
+    const li = document.createElement("div");
+    li.className = "item-imagen" + (indice === estado.indiceActivo ? " activo" : "");
+    li.draggable = true;
+    li.dataset.id = item.id;
+
+    li.innerHTML = `
+      <span class="handle" title="Arrastra para reordenar">⠿</span>
+      <img class="miniatura" src="${item.url}" alt="">
+      <div class="info">
+        <div class="nombre"><span class="indice">${pad(indice + 1, 2)}</span> ${item.nombre}</div>
+        <select class="duracion" aria-label="Duración"></select>
+      </div>
+      <button class="btn-danger-ghost quitar" title="Quitar" style="padding:0px 2px;font-size:6px;">✕</button>
+    `;
+
+    const selectDuracion = li.querySelector(".duracion");
+    rellenarOpcionesDuracion(selectDuracion, item.duracion);
+    selectDuracion.addEventListener("change", (e) => {
+      item.duracion = parseFloat(e.target.value);
+      refrescarTimeline();
+      actualizarResumen();
+      dibujarPreviewActivo();
+    });
+    selectDuracion.addEventListener("click", (e) => e.stopPropagation());
+
+    li.addEventListener("click", () => {
+      estado.indiceActivo = indice;
+      renderizarLista();
+      dibujarPreviewActivo();
+      refrescarTimeline();
+    });
+
+    li.querySelector(".quitar").addEventListener("click", (e) => {
+      e.stopPropagation();
+      quitarImagen(item.id);
+    });
+
+    li.addEventListener("dragstart", (e) => {
+      idArrastrado = item.id;
+      li.classList.add("arrastrando");
+      e.dataTransfer.effectAllowed = "move";
+    });
+    li.addEventListener("dragend", () => {
+      li.classList.remove("arrastrando");
+      document.querySelectorAll(".item-imagen").forEach(n => n.classList.remove("drag-over-top", "drag-over-bottom"));
+    });
+    li.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      const rect = li.getBoundingClientRect();
+      const mitad = rect.top + rect.height / 2;
+      li.classList.toggle("drag-over-top", e.clientY < mitad);
+      li.classList.toggle("drag-over-bottom", e.clientY >= mitad);
+    });
+    li.addEventListener("dragleave", () => {
+      li.classList.remove("drag-over-top", "drag-over-bottom");
+    });
+    li.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const antes = li.classList.contains("drag-over-top");
+      li.classList.remove("drag-over-top", "drag-over-bottom");
+      moverImagen(idArrastrado, item.id, antes);
+    });
+
+    elListaImagenes.appendChild(li);
+  });
+}
+
+function moverImagen(idOrigen, idDestino, antesDelDestino){
+  if (!idOrigen || idOrigen === idDestino) return;
+  const idxOrigen = estado.imagenes.findIndex(i => i.id === idOrigen);
+  const idxDestino = estado.imagenes.findIndex(i => i.id === idDestino);
+  if (idxOrigen === -1 || idxDestino === -1) return;
+
+  const idActivo = estado.indiceActivo >= 0 ? estado.imagenes[estado.indiceActivo].id : null;
+  const [elemento] = estado.imagenes.splice(idxOrigen, 1);
+  let nuevoIndice = estado.imagenes.findIndex(i => i.id === idDestino);
+  if (!antesDelDestino) nuevoIndice += 1;
+  estado.imagenes.splice(nuevoIndice, 0, elemento);
+
+  if (idActivo) estado.indiceActivo = estado.imagenes.findIndex(i => i.id === idActivo);
+  refrescarTodo();
+}
+
+function quitarImagen(id){
+  const idx = estado.imagenes.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  URL.revokeObjectURL(estado.imagenes[idx].url);
+  estado.imagenes.splice(idx, 1);
+  if (estado.imagenes.length === 0) estado.indiceActivo = -1;
+  else if (estado.indiceActivo >= estado.imagenes.length) estado.indiceActivo = estado.imagenes.length - 1;
+  refrescarTodo();
+}
+
+function actualizarResumen(){
+  elContador.textContent = `${estado.imagenes.length}/${MAX_IMAGENES}`;
+  const total = estado.imagenes.reduce((acc, it) => acc + it.duracion, 0);
+  elDuracionTotal.textContent = formatoSegundos(total).replace("s", " s");
+  elBtnExportar.disabled = estado.imagenes.length === 0 || estado.exportando;
+}
+
+// 5b. DURACIÓN GENÉRICA
+elBtnAplicarDuracion.addEventListener("click", () => {
+  const duracion = parseFloat(elDuracionGenericaSelect.value);
+  if (estado.imagenes.length === 0) {
+    mostrarAviso("No hay imágenes para aplicar la duración.");
+    return;
+  }
+  estado.imagenes.forEach(item => item.duracion = duracion);
+  refrescarTodo();
+  mostrarAviso(`Duración de ${formatoSegundos(duracion)} aplicada a todas las imágenes.`);
+});
+
+// 6. DIBUJO EN CANVAS
+function dibujarImagenEnContexto(ctx, img, ancho, alto, modo, enBlancoYNegro){
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, ancho, alto);
+
+  const escalaCover   = Math.max(ancho / img.width, alto / img.height);
+  const escalaContain = Math.min(ancho / img.width, alto / img.height);
+  const escala = modo === "cover" ? escalaCover : escalaContain;
+
+  const nuevoAncho = img.width * escala;
+  const nuevoAlto  = img.height * escala;
+  const x = (ancho - nuevoAncho) / 2;
+  const y = (alto - nuevoAlto) / 2;
+
+  ctx.filter = enBlancoYNegro ? "grayscale(1) contrast(1.08)" : "none";
+  ctx.drawImage(img, x, y, nuevoAncho, nuevoAlto);
+  ctx.filter = "none";
+}
+
+function dibujarPreviewActivo(){
+  if (estado.indiceActivo < 0 || !estado.imagenes[estado.indiceActivo]) {
+    elPreviewMarco.style.display = "none";
+    elPreviewVacio.style.display = "block";
+    return;
+  }
+  elPreviewMarco.style.display = "block";
+  elPreviewVacio.style.display = "none";
+
+  const [ancho, alto] = dimensionesActuales();
+  const escalaPreview = Math.min(1, 800 / Math.max(ancho, alto));
+  elCanvas.width = Math.round(ancho * escalaPreview);
+  elCanvas.height = Math.round(alto * escalaPreview);
+
+  const item = estado.imagenes[estado.indiceActivo];
+  dibujarImagenEnContexto(elCtx, item.img, elCanvas.width, elCanvas.height, estado.ajuste);
+
+  elPreviewInfo.textContent = `Fotograma ${pad(estado.indiceActivo + 1, 2)} de ${pad(estado.imagenes.length, 2)} · ${formatoSegundos(item.duracion)}`;
+}
+
+// 7. AUDIO
+let audioCtxVivo = null;
+function obtenerAudioCtxVivo(){
+  if (!audioCtxVivo) audioCtxVivo = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtxVivo;
+}
+
+const AUDIO_GRABADO_BASE64 = "data:audio/mp3;base64,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";
+
+let bufferGrabado = null;
+let promesaBufferGrabado = null;
+
+function obtenerBufferGrabado(){
+  if (bufferGrabado) return Promise.resolve(bufferGrabado);
+  if (!promesaBufferGrabado){
+    promesaBufferGrabado = fetch(AUDIO_GRABADO_BASE64)
+      .then(r => r.arrayBuffer())
+      .then(arrayBuffer => {
+        const ctxDecodificador = new OfflineAudioContext(1, 1, 44100);
+        return ctxDecodificador.decodeAudioData(arrayBuffer);
+      })
+      .then(buffer => { bufferGrabado = buffer; return buffer; })
+      .catch(err => { console.warn("No se pudo decodificar el sonido grabado:", err); return null; });
+  }
+  return promesaBufferGrabado;
+}
+obtenerBufferGrabado();
+
+const PERFILES_OBTURADOR = {
+  clasico: {
+    freqRuido: 3200, qRuido: 0.9, durRuido: 0.045,
+    golpes: [
+      { retardo: 0, freqIni: 1800, freqFin: 120, dur: 0.02, ganancia: 0.35 },
+      { retardo: 0.038, freqIni: 1400, freqFin: 90, dur: 0.015, ganancia: 0.22 },
+    ],
+  },
+  digital: {
+    freqRuido: 5200, qRuido: 1.4, durRuido: 0.02,
+    golpes: [
+      { retardo: 0, freqIni: 3200, freqFin: 900, dur: 0.008, ganancia: 0.3 },
+    ],
+  },
+  grave: {
+    freqRuido: 900, qRuido: 0.6, durRuido: 0.075,
+    golpes: [
+      { retardo: 0, freqIni: 500, freqFin: 60, dur: 0.035, ganancia: 0.4 },
+      { retardo: 0.05, freqIni: 300, freqFin: 50, dur: 0.03, ganancia: 0.25 },
+    ],
+  },
+};
+
+function programarClickObturador(ctx, tiempo, tipo){
+  tipo = tipo || "clasico";
+
+  if (tipo === "grabacion"){
+    if (bufferGrabado){
+      const fuente = ctx.createBufferSource();
+      fuente.buffer = bufferGrabado;
+      const ganancia = ctx.createGain();
+      ganancia.gain.value = 0.9;
+      fuente.connect(ganancia).connect(ctx.destination);
+      fuente.start(tiempo);
+      return;
+    }
+    tipo = "clasico";
+  }
+
+  const perfil = PERFILES_OBTURADOR[tipo] || PERFILES_OBTURADOR.clasico;
+  const sr = ctx.sampleRate;
+
+  const bufferRuido = ctx.createBuffer(1, Math.ceil(sr * perfil.durRuido), sr);
+  const datos = bufferRuido.getChannelData(0);
+  for (let i = 0; i < datos.length; i++) datos[i] = Math.random() * 2 - 1;
+
+  const fuenteRuido = ctx.createBufferSource();
+  fuenteRuido.buffer = bufferRuido;
+
+  const filtro = ctx.createBiquadFilter();
+  filtro.type = "bandpass";
+  filtro.frequency.value = perfil.freqRuido;
+  filtro.Q.value = perfil.qRuido;
+
+  const gananciaRuido = ctx.createGain();
+  gananciaRuido.gain.setValueAtTime(0.0001, tiempo);
+  gananciaRuido.gain.exponentialRampToValueAtTime(0.8, tiempo + 0.003);
+  gananciaRuido.gain.exponentialRampToValueAtTime(0.0001, tiempo + perfil.durRuido);
+
+  fuenteRuido.connect(filtro).connect(gananciaRuido).connect(ctx.destination);
+  fuenteRuido.start(tiempo);
+  fuenteRuido.stop(tiempo + perfil.durRuido);
+
+  perfil.golpes.forEach(golpe => {
+    const t0 = tiempo + golpe.retardo;
+    const osc = ctx.createOscillator();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(golpe.freqIni, t0);
+    osc.frequency.exponentialRampToValueAtTime(golpe.freqFin, t0 + golpe.dur);
+
+    const gananciaOsc = ctx.createGain();
+    gananciaOsc.gain.setValueAtTime(golpe.ganancia, t0);
+    gananciaOsc.gain.exponentialRampToValueAtTime(0.0001, t0 + golpe.dur);
+
+    osc.connect(gananciaOsc).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + golpe.dur);
+  });
+}
+
+elBtnPreviewAudio.addEventListener("click", () => {
+  const ctx = obtenerAudioCtxVivo();
+  if (ctx.state === "suspended") ctx.resume();
+  programarClickObturador(ctx, ctx.currentTime + 0.02, estado.tipoObturador);
+});
+
+elSelTipoObturador.addEventListener("change", (e) => { estado.tipoObturador = e.target.value; });
+
+// 8. REPRODUCCIÓN DE PREVIEW
+let temporizadorPreview = null;
+
+elBtnPlay.addEventListener("click", () => {
+  if (estado.reproduciendo) { detenerPreview(); return; }
+  reproducirPreview();
+});
+
+function reproducirPreview(){
+  if (estado.imagenes.length === 0) return;
+  estado.reproduciendo = true;
+  elBtnPlay.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>`;
+
+  const ctx = obtenerAudioCtxVivo();
+  if (ctx.state === "suspended") ctx.resume();
+
+  let i = estado.indiceActivo >= 0 ? estado.indiceActivo : 0;
+
+  const pasoSiguiente = () => {
+    if (!estado.reproduciendo || i >= estado.imagenes.length){
+      detenerPreview();
+      return;
+    }
+    estado.indiceActivo = i;
+    renderizarLista();
+    dibujarPreviewActivo();
+    resaltarSegmentoTimeline(i);
+
+    const item = estado.imagenes[i];
+    const esUltima = i === estado.imagenes.length - 1;
+
+    temporizadorPreview = setTimeout(() => {
+      if (!esUltima){
+        programarClickObturador(ctx, ctx.currentTime + 0.01, estado.tipoObturador);
+        if (estado.flash){
+          dibujarFlashBN(item);
+          temporizadorPreview = setTimeout(() => { i++; pasoSiguiente(); }, estado.duracionFlash * 1000);
+          return;
+        }
+      }
+      i++;
+      pasoSiguiente();
+    }, item.duracion * 1000);
+  };
+  pasoSiguiente();
+}
+
+function detenerPreview(){
+  estado.reproduciendo = false;
+  clearTimeout(temporizadorPreview);
+  elBtnPlay.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+}
+
+function dibujarFlashBN(item){
+  const [ancho, alto] = dimensionesActuales();
+  const escalaPreview = Math.min(1, 800 / Math.max(ancho, alto));
+  elCanvas.width = Math.round(ancho * escalaPreview);
+  elCanvas.height = Math.round(alto * escalaPreview);
+  dibujarImagenEnContexto(elCtx, item.img, elCanvas.width, elCanvas.height, estado.ajuste, true);
+}
+
+// 9. TIMELINE
+const PIXELES_POR_SEGUNDO = 100;
+
+function refrescarTimeline(){
+  elPista.innerHTML = "";
+
+  if (estado.imagenes.length === 0){
+    elTimelineVacio.style.display = "block";
+    elPista.style.display = "none";
+    return;
+  }
+  elTimelineVacio.style.display = "none";
+  elPista.style.display = "flex";
+
+  estado.imagenes.forEach((item, indice) => {
+    const segmento = document.createElement("div");
+    segmento.className = "segmento" + (indice === estado.indiceActivo ? " activo" : "");
+    segmento.style.width = Math.max(12, item.duracion * PIXELES_POR_SEGUNDO) + "px";
+    segmento.style.backgroundImage = `url("${item.url}")`;
+    segmento.dataset.indice = indice;
+    segmento.innerHTML = `<span class="etiqueta">${pad(indice + 1, 2)} · ${formatoSegundos(item.duracion)}</span>`;
+    segmento.addEventListener("click", () => {
+      estado.indiceActivo = indice;
+      renderizarLista();
+      dibujarPreviewActivo();
+      refrescarTimeline();
+    });
+    elPista.appendChild(segmento);
+
+    const esUltima = indice === estado.imagenes.length - 1;
+    if (!esUltima){
+      if (estado.flash){
+        const flashEl = document.createElement("div");
+        flashEl.className = "segmento-flash";
+        flashEl.style.width = Math.max(6, estado.duracionFlash * PIXELES_POR_SEGUNDO) + "px";
+        flashEl.title = `Flash B/N · ${formatoSegundos(estado.duracionFlash)}`;
+        flashEl.innerHTML = `<span class="etiqueta-bn">B/N ${formatoSegundos(estado.duracionFlash)}</span>`;
+        elPista.appendChild(flashEl);
+      }
+      const marca = document.createElement("div");
+      marca.className = "marca-click" + (estado.flash ? " con-flash" : "");
+      marca.title = "Click de obturador";
+      marca.innerHTML = `<span class="linea"></span><span class="icono">●</span>`;
+      elPista.appendChild(marca);
+    }
+  });
+}
+
+function resaltarSegmentoTimeline(indice){
+  document.querySelectorAll(".segmento").forEach(s => s.classList.remove("activo"));
+  const seg = elPista.querySelector(`.segmento[data-indice="${indice}"]`);
+  if (seg){
+    seg.classList.add("activo");
+    seg.scrollIntoView({ inline: "center", behavior: "smooth", block: "nearest" });
+  }
+}
+
+// 10. CONTROLES
+elSelRatio.addEventListener("change", (e) => {
+  estado.ratio = e.target.value;
+  dibujarPreviewActivo();
+});
+elSelCalidad.addEventListener("change", (e) => {
+  estado.calidad = e.target.value;
+  dibujarPreviewActivo();
+});
+elGrupoAjuste.addEventListener("click", (e) => {
+  const boton = e.target.closest(".chip");
+  if (!boton) return;
+  estado.ajuste = boton.dataset.modo;
+  [...elGrupoAjuste.children].forEach(c => c.classList.toggle("active", c === boton));
+  dibujarPreviewActivo();
+});
+elChkWebm.addEventListener("change", (e) => { estado.incluirWebm = e.target.checked; });
+elChkFlash.addEventListener("change", (e) => {
+  estado.flash = e.target.checked;
+  elSelDuracionFlash.disabled = !estado.flash;
+  refrescarTimeline();
+});
+rellenarOpcionesDuracion(elSelDuracionFlash, estado.duracionFlash);
+elSelDuracionFlash.addEventListener("change", (e) => {
+  estado.duracionFlash = parseFloat(e.target.value);
+  refrescarTimeline();
+});
+
+elSelTransicion.addEventListener("change", (e) => { estado.transicion = e.target.value; });
+
+// Música
+elBtnMusica.addEventListener("click", () => elInputMusica.click());
+
+elInputMusica.addEventListener("change", (e) => {
+  const archivo = e.target.files[0];
+  if (archivo) {
+    if (archivo.size > 20 * 1024 * 1024) {
+      mostrarError("El archivo de música no puede superar los 20 MB.");
+      elInputMusica.value = "";
+      return;
+    }
+    if (estado.urlMusica) {
+      URL.revokeObjectURL(estado.urlMusica);
+    }
+    estado.archivoMusica = archivo;
+    estado.urlMusica = URL.createObjectURL(archivo);
+    elNombreMusica.textContent = archivo.name.substring(0, 12) + (archivo.name.length > 12 ? "…" : "");
+    elBtnQuitarMusica.style.display = "inline-block";
+    mostrarAviso(`Música "${archivo.name}" cargada.`);
+  }
+});
+
+elBtnQuitarMusica.addEventListener("click", () => {
+  if (estado.urlMusica) {
+    URL.revokeObjectURL(estado.urlMusica);
+  }
+  estado.archivoMusica = null;
+  estado.urlMusica = null;
+  elNombreMusica.textContent = "";
+  elBtnQuitarMusica.style.display = "none";
+  elInputMusica.value = "";
+  mostrarAviso("Música eliminada.");
+});
+
+elVolMusica.addEventListener("input", (e) => {
+  estado.volumenMusica = parseFloat(e.target.value) / 100;
+});
+
+// 11. REFRESCO GENERAL
+function refrescarTodo(){
+  renderizarLista();
+  actualizarResumen();
+  dibujarPreviewActivo();
+  refrescarTimeline();
+}
+
+// 12. AUDIO A WAV
+function audioBufferAWav(audioBuffer){
+  const numCanales = audioBuffer.numberOfChannels;
+  const frecuenciaMuestreo = audioBuffer.sampleRate;
+  const numMuestras = audioBuffer.length;
+  const bytesPorMuestra = 2;
+  const bloqueAlineado = numCanales * bytesPorMuestra;
+  const tamanoDatos = numMuestras * bloqueAlineado;
+  const buffer = new ArrayBuffer(44 + tamanoDatos);
+  const vista = new DataView(buffer);
+
+  function escribirCadena(offset, cadena){
+    for (let i = 0; i < cadena.length; i++) vista.setUint8(offset + i, cadena.charCodeAt(i));
+  }
+
+  escribirCadena(0, "RIFF");
+  vista.setUint32(4, 36 + tamanoDatos, true);
+  escribirCadena(8, "WAVE");
+  escribirCadena(12, "fmt ");
+  vista.setUint32(16, 16, true);
+  vista.setUint16(20, 1, true);
+  vista.setUint16(22, numCanales, true);
+  vista.setUint32(24, frecuenciaMuestreo, true);
+  vista.setUint32(28, frecuenciaMuestreo * bloqueAlineado, true);
+  vista.setUint16(32, bloqueAlineado, true);
+  vista.setUint16(34, 16, true);
+  escribirCadena(36, "data");
+  vista.setUint32(40, tamanoDatos, true);
+
+  const canales = [];
+  for (let c = 0; c < numCanales; c++) canales.push(audioBuffer.getChannelData(c));
+
+  let offset = 44;
+  for (let i = 0; i < numMuestras; i++){
+    for (let c = 0; c < numCanales; c++){
+      let muestra = Math.max(-1, Math.min(1, canales[c][i]));
+      muestra = muestra < 0 ? muestra * 0x8000 : muestra * 0x7fff;
+      vista.setInt16(offset, muestra, true);
+      offset += 2;
+    }
+  }
+  return new Blob([vista], { type: "audio/wav" });
+}
+
+// 13. PLAN DE EXPORTACIÓN
+function calcularPlanDeExportacion(){
+  const entradas = [];
+  const instantesClick = [];
+  let acumulado = 0;
+
+  estado.imagenes.forEach((item, indice) => {
+    entradas.push({ tipo: "imagen", item, duracion: item.duracion });
+    acumulado += item.duracion;
+
+    const esUltima = indice === estado.imagenes.length - 1;
+    if (!esUltima){
+      instantesClick.push(acumulado);
+      if (estado.flash){
+        entradas.push({ tipo: "flash", item, duracion: estado.duracionFlash });
+        acumulado += estado.duracionFlash;
+      }
+    }
+  });
+
+  return { entradas, instantesClick, duracionTotal: acumulado };
+}
+
+// 14. MEMORIA
+async function comprobarMemoriaSuficiente(){
+  const [ancho, alto] = dimensionesActuales();
+  const { duracionTotal } = calcularPlanDeExportacion();
+  
+  const riesgoAlto = estado.calidad === "4k" && (estado.imagenes.length > 40 || duracionTotal > 90);
+  const riesgoMedio = estado.calidad === "4k" && estado.imagenes.length > 20;
+
+  if (riesgoAlto){
+    return await pedirConfirmacion(
+      `Exportando ${estado.imagenes.length} imágenes en 4K (${ancho}×${alto}px, ${duracionTotal.toFixed(1)}s). ` +
+      `Puede agotar la memoria. ¿Continuar?`
+    );
+  }
+  if (riesgoMedio){
+    mostrarAviso(`Exportando ${estado.imagenes.length} imágenes en 4K. Si se ralentiza, prueba con 1080p.`, 8000);
+  }
+  return true;
+}
+
+// 15. EXPORTACIÓN
+let ffmpeg = null;
+let ffmpegCargado = false;
+
+async function asegurarFFmpegCargado(actualizarEtapa){
+  if (ffmpegCargado) return;
+  if (!FFmpeg) await cargarLibreriaFFmpeg();
+
+  ffmpeg = new FFmpeg();
+  ffmpeg.on("log", ({ message }) => { /* console.debug("[ffmpeg]", message); */ });
+  ffmpeg.on("progress", ({ progress }) => {
+    if (progress >= 0 && progress <= 1) {
+      actualizarBarraExportacion(60 + progress * 35, "Codificando…");
+    }
+  });
+
+  actualizarEtapa("Descargando FFmpeg (30 MB)…");
+  const base = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
+  await ffmpeg.load({
+    coreURL: await toBlobURL(`${base}/ffmpeg-core.js`, "text/javascript"),
+    wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, "application/wasm"),
+  });
+  ffmpegCargado = true;
+}
+
+function actualizarBarraExportacion(porcentaje, etapa){
+  elExportBarra.style.width = Math.min(100, Math.max(0, porcentaje)) + "%";
+  elExportPorcentaje.textContent = Math.round(porcentaje) + "%";
+  if (etapa) elExportEtapa.textContent = etapa;
+}
+
+elBtnCancelarExport.addEventListener("click", () => {
+  estado.cancelarExportacion = true;
+  actualizarBarraExportacion(0, "Cancelando…");
+});
+
+elBtnExportar.addEventListener("click", exportarVideo);
+
+async function exportarVideo(){
+  if (estado.imagenes.length === 0 || estado.exportando) return;
+
+  const continuar = await comprobarMemoriaSuficiente();
+  if (!continuar) return;
+
+  estado.exportando = true;
+  estado.cancelarExportacion = false;
+  elBtnExportar.disabled = true;
+  elExportBar.classList.add("visible");
+  actualizarBarraExportacion(0, "Iniciando…");
+
+  try{
+    await asegurarFFmpegCargado((texto) => actualizarBarraExportacion(2, texto));
+    if (estado.cancelarExportacion) throw new Error("cancelado");
+
+    const [ancho, alto] = dimensionesActuales();
+    const { entradas, instantesClick, duracionTotal } = calcularPlanDeExportacion();
+
+    // 15.1 Generar fotogramas
+    actualizarBarraExportacion(5, "Preparando fotogramas…");
+    const canvasExport = document.createElement("canvas");
+    canvasExport.width = ancho;
+    canvasExport.height = alto;
+    const ctxExport = canvasExport.getContext("2d");
+
+    const nombresImagen = {};
+    const nombresBN = {};
+    let contadorImg = 0;
+    for (const item of estado.imagenes){
+      if (estado.cancelarExportacion) throw new Error("cancelado");
+
+      dibujarImagenEnContexto(ctxExport, item.img, ancho, alto, estado.ajuste, false);
+      const blob = await new Promise(res => canvasExport.toBlob(res, "image/jpeg", 0.95));
+      const nombreArchivo = `img${pad(contadorImg, 4)}.jpg`;
+      await ffmpeg.writeFile(nombreArchivo, new Uint8Array(await blob.arrayBuffer()));
+      nombresImagen[item.id] = nombreArchivo;
+
+      if (estado.flash){
+        dibujarImagenEnContexto(ctxExport, item.img, ancho, alto, estado.ajuste, true);
+        const blobBN = await new Promise(res => canvasExport.toBlob(res, "image/jpeg", 0.95));
+        const nombreBN = `bn${pad(contadorImg, 4)}.jpg`;
+        await ffmpeg.writeFile(nombreBN, new Uint8Array(await blobBN.arrayBuffer()));
+        nombresBN[item.id] = nombreBN;
+      }
+
+      contadorImg++;
+      actualizarBarraExportacion(5 + (contadorImg / estado.imagenes.length) * 20, `Fotogramas ${contadorImg}/${estado.imagenes.length}`);
+    }
+
+    const nombreDeEntrada = (entrada) => entrada.tipo === "imagen" ? nombresImagen[entrada.item.id] : nombresBN[entrada.item.id];
+
+    // 15.2 Construir timeline
+    actualizarBarraExportacion(26, "Montando timeline…");
+    
+    const usarXfade = estado.flash === false && estado.imagenes.length > 1;
+
+    if (usarXfade) {
+      let filterComplex = "";
+      let currentOffset = 0;
+      const duracionTransicion = 0.5;
+      
+      for (let i = 0; i < estado.imagenes.length; i++) {
+        if (i === 0) {
+          filterComplex += `[${i}:v]setpts=PTS-STARTPTS,scale=${ancho}:${alto}:force_original_aspect_ratio=decrease,pad=${ancho}:${alto}:(ow-iw)/2:(oh-ih)/2,format=yuv420p[v${i}];`;
+          currentOffset += estado.imagenes[i].duracion;
+        } else {
+          const xfadeOffset = currentOffset - duracionTransicion;
+          filterComplex += `[v${i-1}][${i}:v]xfade=transition=${estado.transicion}:duration=${duracionTransicion}:offset=${xfadeOffset},setpts=PTS-STARTPTS,scale=${ancho}:${alto}:force_original_aspect_ratio=decrease,pad=${ancho}:${alto}:(ow-iw)/2:(oh-ih)/2,format=yuv420p[v${i}];`;
+          currentOffset += estado.imagenes[i].duracion;
+        }
+      }
+      
+      let listaTexto = "";
+      for (const item of estado.imagenes) {
+        listaTexto += `file '${nombresImagen[item.id]}'\nduration ${item.duracion.toFixed(6)}\n`;
+      }
+      const ultimoItem = estado.imagenes[estado.imagenes.length - 1];
+      listaTexto += `file '${nombresImagen[ultimoItem.id]}'\n`;
+      await ffmpeg.writeFile("lista.txt", new TextEncoder().encode(listaTexto));
+
+      await ffmpeg.exec([
+        "-f", "concat", "-safe", "0", "-i", "lista.txt",
+        "-filter_complex", filterComplex + `[v${estado.imagenes.length-1}]null`,
+        "-map", `[v${estado.imagenes.length-1}]`,
+        "-r", String(FPS),
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
+        "video_sin_audio.mp4"
+      ]);
+      
+    } else {
+      let listaTexto = "";
+      for (const entrada of entradas){
+        listaTexto += `file '${nombreDeEntrada(entrada)}'\nduration ${entrada.duracion.toFixed(6)}\n`;
+      }
+      const ultimaEntrada = entradas[entradas.length - 1];
+      listaTexto += `file '${nombreDeEntrada(ultimaEntrada)}'\n`;
+
+      await ffmpeg.writeFile("lista.txt", new TextEncoder().encode(listaTexto));
+
+      await ffmpeg.exec([
+        "-f", "concat", "-safe", "0", "-i", "lista.txt",
+        "-r", String(FPS),
+        "-pix_fmt", "yuv420p",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
+        "video_sin_audio.mp4",
+      ]);
+    }
+
+    // 15.3 Generar audio
+    actualizarBarraExportacion(30, "Generando audio…");
+    if (estado.tipoObturador === "grabacion") await obtenerBufferGrabado();
+    const offlineCtx = new OfflineAudioContext(2, Math.ceil(44100 * (duracionTotal + 0.3)), 44100);
+    instantesClick.forEach(t => programarClickObturador(offlineCtx, t, estado.tipoObturador));
+
+    if (estado.archivoMusica && estado.urlMusica) {
+      try {
+        const response = await fetch(estado.urlMusica);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer);
+        
+        const source = offlineCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        const gainNode = offlineCtx.createGain();
+        gainNode.gain.value = estado.volumenMusica;
+        source.connect(gainNode);
+        gainNode.connect(offlineCtx.destination);
+        source.start(0);
+        
+        if (audioBuffer.duration < duracionTotal) {
+          const loopSource = offlineCtx.createBufferSource();
+          loopSource.buffer = audioBuffer;
+          const loopGain = offlineCtx.createGain();
+          loopGain.gain.value = estado.volumenMusica * 0.7;
+          loopSource.connect(loopGain);
+          loopGain.connect(offlineCtx.destination);
+          loopSource.start(Math.floor(duracionTotal / audioBuffer.duration) * audioBuffer.duration);
+        }
+      } catch (error) {
+        console.warn("Error al cargar la música:", error);
+        mostrarAviso("No se pudo cargar la música. Se exportará sin ella.");
+      }
+    }
+
+    const bufferRenderizado = await offlineCtx.startRendering();
+    const blobWav = audioBufferAWav(bufferRenderizado);
+    await ffmpeg.writeFile("audio.wav", new Uint8Array(await blobWav.arrayBuffer()));
+
+    if (estado.cancelarExportacion) throw new Error("cancelado");
+
+    // 15.4 Mezclar
+    actualizarBarraExportacion(70, "Mezclando…");
+    await ffmpeg.exec([
+      "-i", "video_sin_audio.mp4", "-i", "audio.wav",
+      "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+      "-shortest",
+      "salida_final.mp4",
+    ]);
+
+    const datosMp4 = await ffmpeg.readFile("salida_final.mp4");
+    descargarArchivo(new Blob([datosMp4.buffer], { type: "video/mp4" }), nombreDeSalida("mp4"));
+
+    // 15.5 WebM
+    if (estado.incluirWebm && !estado.cancelarExportacion){
+      actualizarBarraExportacion(85, "Codificando WebM…");
+      await ffmpeg.exec([
+        "-i", "video_sin_audio.mp4", "-i", "audio.wav",
+        "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "34", "-row-mt", "1",
+        "-c:a", "libopus", "-b:a", "160k",
+        "-shortest",
+        "salida_final.webm",
+      ]);
+      const datosWebm = await ffmpeg.readFile("salida_final.webm");
+      descargarArchivo(new Blob([datosWebm.buffer], { type: "video/webm" }), nombreDeSalida("webm"));
+    }
+
+    actualizarBarraExportacion(100, "¡Listo!");
+    mostrarAviso("Vídeo exportado correctamente.");
+
+  } catch (err){
+    if (err && err.message === "cancelado"){
+      mostrarAviso("Exportación cancelada.");
+    } else {
+      console.error(err);
+      mostrarError(
+        "Error al exportar. Prueba con menos imágenes o calidad 1080p. " +
+        `Detalle: ${err && err.message ? err.message : err}`
+      );
+    }
+  } finally {
+    estado.exportando = false;
+    elBtnExportar.disabled = estado.imagenes.length === 0;
+    setTimeout(() => { elExportBar.classList.remove("visible"); actualizarBarraExportacion(0, ""); }, 2000);
+  }
+}
+
+function nombreDeSalida(extension){
+  const fecha = new Date();
+  const marca = `${fecha.getFullYear()}${pad(fecha.getMonth()+1,2)}${pad(fecha.getDate(),2)}-${pad(fecha.getHours(),2)}${pad(fecha.getMinutes(),2)}`;
+  return `contactor-${marca}.${extension}`;
+}
+
+function descargarArchivo(blob, nombre){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// 16. ARRANQUE
+refrescarTodo();
+</script>
+</body>
+</html>
