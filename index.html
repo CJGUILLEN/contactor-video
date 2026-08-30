@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contactor — Fotos a vídeo</title>
+<title>Contactor — Fotos a vídeo (sin FFmpeg)</title>
 <style>
-/* ===== ESTILOS ===== */
 :root {
   --bg-base: #0b0908;
   --bg-panel: #14100e;
@@ -19,6 +18,7 @@
   --accent-soft: #e8792f26;
   --accent-strong: #ff9a4d;
   --danger: #d1503a;
+  --danger-soft: #d1503a22;
   --font-mono: 'Consolas', monospace;
 }
 *{box-sizing:border-box;}
@@ -117,9 +117,6 @@ select{font-family:var(--font-mono);}
 .segmento{flex:none;height:100%;background-size:cover;background-position:center;border-right:2px solid #050403;position:relative;cursor:pointer;display:flex;align-items:flex-end;min-width:6px;}
 .segmento.activo{outline:2px solid #e8792f;outline-offset:-2px;z-index:2;}
 .segmento .etiqueta{width:100%;background:linear-gradient(to top,#000000cc,transparent);color:#fff;font-size:7px;padding:1px 3px;white-space:nowrap;overflow:hidden;}
-.marca-click{flex:none;width:8px;height:100%;display:flex;align-items:center;justify-content:center;position:relative;}
-.marca-click .linea{width:1px;height:30%;background:#e8792f;opacity:.6;}
-.marca-click .icono{position:absolute;top:1px;color:#e8792f;font-size:5px;}
 .timeline-vacio{padding:12px;text-align:center;color:#6b6055;font-size:11px;}
 .export-bar{display:none;align-items:center;gap:8px;padding:6px 12px;background:#1d1713;border-top:1px solid #2c231d;font-size:10px;flex-shrink:0;}
 .export-bar.visible{display:flex;}
@@ -156,26 +153,6 @@ select{font-family:var(--font-mono);}
       <option value="4k">4K</option>
     </select>
   </div>
-
-  <div class="field">
-    <label>Transición</label>
-    <select id="sel-transicion">
-      <option value="fade">Fundido</option>
-      <option value="slideleft">Deslizar</option>
-      <option value="circleopen">Círculo</option>
-      <option value="hflip">Volteo</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>Sonido</label>
-    <select id="sel-tipo-obturador">
-      <option value="clasico">Réflex</option>
-      <option value="digital">Digital</option>
-      <option value="grave">Grave</option>
-    </select>
-  </div>
-  <button class="btn" id="btn-preview-audio">🔊</button>
 
   <div class="spacer"></div>
 
@@ -253,36 +230,15 @@ select{font-family:var(--font-mono);}
   </div>
 </footer>
 
-<script type="module">
+<script>
 // ============================================================
-// CONTACTOR — VERSIÓN CORREGIDA PARA GITHUB PAGES
+// CONTACTOR — VERSIÓN SIN FFMPEG (USANDO MediaRecorder)
 // ============================================================
 
-// ===== 0. FFMPEG (SIN WORKERS) =====
-let FFmpeg, fetchFile, toBlobURL;
-
-async function cargarLibreriaFFmpeg() {
-  try {
-    // Usamos la versión 0.11.6 que NO necesita workers
-    const { FFmpeg: FFmpegLib } = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/esm/index.js');
-    const { fetchFile: fetchFileLib, toBlobURL: toBlobURLLib } = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.11.6/dist/esm/index.js');
-    FFmpeg = FFmpegLib;
-    fetchFile = fetchFileLib;
-    toBlobURL = toBlobURLLib;
-    return true;
-  } catch (error) {
-    console.error("Error al cargar FFmpeg:", error);
-    throw new Error("No se pudo cargar FFmpeg. Verifica tu conexión a internet.");
-  }
-}
-
-// ===== 1. ESTADO =====
 const estado = {
   imagenes: [],
   ratio: "9:16",
   calidad: "1080",
-  transicion: "fade",
-  tipoObturador: "clasico",
   indiceActivo: -1,
   reproduciendo: false,
   exportando: false,
@@ -306,7 +262,7 @@ function dimensionesActuales(){
   return DIMENSIONES[estado.calidad][estado.ratio];
 }
 
-// ===== 2. DOM =====
+// ===== DOM =====
 const $ = (sel) => document.querySelector(sel);
 const elDropzone = $("#dropzone");
 const elInputArchivos = $("#input-archivos");
@@ -317,8 +273,6 @@ const elDuracionGenericaSelect = $("#duracion-generica-select");
 const elBtnAplicarDuracion = $("#btn-aplicar-duracion");
 const elSelRatio = $("#sel-ratio");
 const elSelCalidad = $("#sel-calidad");
-const elSelTransicion = $("#sel-transicion");
-const elSelTipoObturador = $("#sel-tipo-obturador");
 const elCanvas = $("#canvas-preview");
 const elCtx = elCanvas.getContext("2d");
 const elPreviewMarco = $("#preview-marco");
@@ -326,18 +280,16 @@ const elPreviewVacio = $("#preview-vacio");
 const elPreviewInfo = $("#preview-info");
 const elBtnPlay = $("#btn-play");
 const elEstadoPanel = $("#estado-panel");
-const elFilmstrip = $("#filmstrip");
 const elPista = $("#pista");
 const elTimelineVacio = $("#timeline-vacio");
 const elBtnExportar = $("#btn-exportar");
-const elBtnPreviewAudio = $("#btn-preview-audio");
 const elExportBar = $("#export-bar");
 const elExportEtapa = $("#export-etapa");
 const elExportBarra = $("#export-barra");
 const elExportPorcentaje = $("#export-porcentaje");
 const elBtnCancelarExport = $("#btn-cancelar-export");
 
-// ===== 3. UTILIDADES =====
+// ===== UTILIDADES =====
 let contadorId = 0;
 function generarId(){ return "img-" + (++contadorId) + "-" + Date.now().toString(36); }
 function formatoSegundos(s){ return s.toFixed(1).replace(/\.0$/, "") + "s"; }
@@ -375,32 +327,7 @@ function mostrarAviso(mensaje, duracionMs = 4000){
   return div;
 }
 
-function pedirConfirmacion(mensaje){
-  return new Promise((resolve) => {
-    const div = document.createElement("div");
-    div.className = "mensaje-error";
-    div.style.flexDirection = "column";
-    div.style.alignItems = "stretch";
-    div.innerHTML = `<span>⚠ ${mensaje}</span>`;
-    const fila = document.createElement("div");
-    fila.style.cssText = "display:flex; gap:6px; margin-top:6px; justify-content:flex-end;";
-    const btnSeguir = document.createElement("button");
-    btnSeguir.className = "btn btn-primary";
-    btnSeguir.style.padding = "4px 10px";
-    btnSeguir.textContent = "Continuar";
-    const btnCancelar = document.createElement("button");
-    btnCancelar.className = "btn";
-    btnCancelar.style.padding = "4px 10px";
-    btnCancelar.textContent = "Cancelar";
-    btnSeguir.onclick = () => { div.remove(); resolve(true); };
-    btnCancelar.onclick = () => { div.remove(); resolve(false); };
-    fila.append(btnCancelar, btnSeguir);
-    div.appendChild(fila);
-    elEstadoPanel.appendChild(div);
-  });
-}
-
-// ===== 4. CARGA DE IMÁGENES =====
+// ===== CARGA DE IMÁGENES =====
 elDropzone.addEventListener("click", () => elInputArchivos.click());
 elDropzone.addEventListener("dragover", (e) => { e.preventDefault(); elDropzone.classList.add("dragover"); });
 elDropzone.addEventListener("dragleave", () => elDropzone.classList.remove("dragover"));
@@ -444,7 +371,7 @@ function cargarImagen(archivo){
   img.src = url;
 }
 
-// ===== 5. LISTA =====
+// ===== LISTA =====
 let idArrastrado = null;
 
 function renderizarLista(){
@@ -462,7 +389,7 @@ function renderizarLista(){
         <div class="nombre"><span class="indice">${pad(indice + 1, 2)}</span> ${item.nombre}</div>
         <select class="duracion"></select>
       </div>
-      <button class="btn-danger quitar" style="padding:0px 4px;font-size:10px;background:none;border:none;color:#d1503a;cursor:pointer;">✕</button>
+      <button class="quitar" style="background:none;border:none;color:#d1503a;cursor:pointer;font-size:12px;">✕</button>
     `;
 
     const selectDuracion = li.querySelector(".duracion");
@@ -547,7 +474,7 @@ function actualizarResumen(){
   elBtnExportar.disabled = estado.imagenes.length === 0 || estado.exportando;
 }
 
-// ===== 6. DURACIÓN GENÉRICA =====
+// ===== DURACIÓN GENÉRICA =====
 elBtnAplicarDuracion.addEventListener("click", () => {
   const duracion = parseFloat(elDuracionGenericaSelect.value);
   if (estado.imagenes.length === 0) {
@@ -559,11 +486,11 @@ elBtnAplicarDuracion.addEventListener("click", () => {
   mostrarAviso(`Duración de ${formatoSegundos(duracion)} aplicada.`);
 });
 
-// ===== 7. DIBUJO =====
-function dibujarImagenEnContexto(ctx, img, ancho, alto, modo){
+// ===== DIBUJO =====
+function dibujarImagenEnContexto(ctx, img, ancho, alto){
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, ancho, alto);
-  const escala = modo === "cover" ? Math.max(ancho/img.width, alto/img.height) : Math.min(ancho/img.width, alto/img.height);
+  const escala = Math.max(ancho/img.width, alto/img.height);
   const nw = img.width * escala;
   const nh = img.height * escala;
   const x = (ancho - nw) / 2;
@@ -586,75 +513,11 @@ function dibujarPreviewActivo(){
   elCanvas.height = Math.round(alto * escalaPreview);
 
   const item = estado.imagenes[estado.indiceActivo];
-  dibujarImagenEnContexto(elCtx, item.img, elCanvas.width, elCanvas.height, "cover");
+  dibujarImagenEnContexto(elCtx, item.img, elCanvas.width, elCanvas.height);
   elPreviewInfo.textContent = `${pad(estado.indiceActivo+1,2)} de ${pad(estado.imagenes.length,2)} · ${formatoSegundos(item.duracion)}`;
 }
 
-// ===== 8. AUDIO =====
-let audioCtxVivo = null;
-function obtenerAudioCtxVivo(){
-  if (!audioCtxVivo) audioCtxVivo = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtxVivo;
-}
-
-const PERFILES_OBTURADOR = {
-  clasico: { freqRuido: 3200, qRuido: 0.9, durRuido: 0.045,
-    golpes: [{retardo:0, freqIni:1800, freqFin:120, dur:0.02, ganancia:0.35},
-             {retardo:0.038, freqIni:1400, freqFin:90, dur:0.015, ganancia:0.22}]},
-  digital: { freqRuido: 5200, qRuido: 1.4, durRuido: 0.02,
-    golpes: [{retardo:0, freqIni:3200, freqFin:900, dur:0.008, ganancia:0.3}]},
-  grave: { freqRuido: 900, qRuido: 0.6, durRuido: 0.075,
-    golpes: [{retardo:0, freqIni:500, freqFin:60, dur:0.035, ganancia:0.4},
-             {retardo:0.05, freqIni:300, freqFin:50, dur:0.03, ganancia:0.25}]},
-};
-
-function programarClickObturador(ctx, tiempo, tipo){
-  tipo = tipo || "clasico";
-  const perfil = PERFILES_OBTURADOR[tipo] || PERFILES_OBTURADOR.clasico;
-  const sr = ctx.sampleRate;
-
-  const bufferRuido = ctx.createBuffer(1, Math.ceil(sr * perfil.durRuido), sr);
-  const datos = bufferRuido.getChannelData(0);
-  for (let i = 0; i < datos.length; i++) datos[i] = Math.random() * 2 - 1;
-
-  const fuenteRuido = ctx.createBufferSource();
-  fuenteRuido.buffer = bufferRuido;
-  const filtro = ctx.createBiquadFilter();
-  filtro.type = "bandpass";
-  filtro.frequency.value = perfil.freqRuido;
-  filtro.Q.value = perfil.qRuido;
-  const gananciaRuido = ctx.createGain();
-  gananciaRuido.gain.setValueAtTime(0.0001, tiempo);
-  gananciaRuido.gain.exponentialRampToValueAtTime(0.8, tiempo + 0.003);
-  gananciaRuido.gain.exponentialRampToValueAtTime(0.0001, tiempo + perfil.durRuido);
-  fuenteRuido.connect(filtro).connect(gananciaRuido).connect(ctx.destination);
-  fuenteRuido.start(tiempo);
-  fuenteRuido.stop(tiempo + perfil.durRuido);
-
-  perfil.golpes.forEach(golpe => {
-    const t0 = tiempo + golpe.retardo;
-    const osc = ctx.createOscillator();
-    osc.type = "square";
-    osc.frequency.setValueAtTime(golpe.freqIni, t0);
-    osc.frequency.exponentialRampToValueAtTime(golpe.freqFin, t0 + golpe.dur);
-    const gananciaOsc = ctx.createGain();
-    gananciaOsc.gain.setValueAtTime(golpe.ganancia, t0);
-    gananciaOsc.gain.exponentialRampToValueAtTime(0.0001, t0 + golpe.dur);
-    osc.connect(gananciaOsc).connect(ctx.destination);
-    osc.start(t0);
-    osc.stop(t0 + golpe.dur);
-  });
-}
-
-elBtnPreviewAudio.addEventListener("click", () => {
-  const ctx = obtenerAudioCtxVivo();
-  if (ctx.state === "suspended") ctx.resume();
-  programarClickObturador(ctx, ctx.currentTime + 0.02, estado.tipoObturador);
-});
-
-elSelTipoObturador.addEventListener("change", (e) => { estado.tipoObturador = e.target.value; });
-
-// ===== 9. PREVIEW =====
+// ===== PREVIEW =====
 let temporizadorPreview = null;
 elBtnPlay.addEventListener("click", () => {
   if (estado.reproduciendo) { detenerPreview(); return; }
@@ -665,9 +528,6 @@ function reproducirPreview(){
   if (estado.imagenes.length === 0) return;
   estado.reproduciendo = true;
   elBtnPlay.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>`;
-
-  const ctx = obtenerAudioCtxVivo();
-  if (ctx.state === "suspended") ctx.resume();
 
   let i = estado.indiceActivo >= 0 ? estado.indiceActivo : 0;
   const pasoSiguiente = () => {
@@ -682,9 +542,6 @@ function reproducirPreview(){
     const esUltima = i === estado.imagenes.length - 1;
 
     temporizadorPreview = setTimeout(() => {
-      if (!esUltima){
-        programarClickObturador(ctx, ctx.currentTime + 0.01, estado.tipoObturador);
-      }
       i++;
       pasoSiguiente();
     }, item.duracion * 1000);
@@ -698,7 +555,7 @@ function detenerPreview(){
   elBtnPlay.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
 }
 
-// ===== 10. TIMELINE =====
+// ===== TIMELINE =====
 const PIXELES_POR_SEGUNDO = 100;
 
 function refrescarTimeline(){
@@ -725,17 +582,10 @@ function refrescarTimeline(){
       refrescarTimeline();
     });
     elPista.appendChild(segmento);
-
-    if (indice < estado.imagenes.length - 1){
-      const marca = document.createElement("div");
-      marca.className = "marca-click";
-      marca.innerHTML = `<span class="linea"></span><span class="icono">●</span>`;
-      elPista.appendChild(marca);
-    }
   });
 }
 
-// ===== 11. CONTROLES =====
+// ===== CONTROLES =====
 elSelRatio.addEventListener("change", (e) => {
   estado.ratio = e.target.value;
   dibujarPreviewActivo();
@@ -744,9 +594,8 @@ elSelCalidad.addEventListener("change", (e) => {
   estado.calidad = e.target.value;
   dibujarPreviewActivo();
 });
-elSelTransicion.addEventListener("change", (e) => { estado.transicion = e.target.value; });
 
-// ===== 12. REFRESCO GENERAL =====
+// ===== REFRESCO GENERAL =====
 function refrescarTodo(){
   renderizarLista();
   actualizarResumen();
@@ -754,95 +603,7 @@ function refrescarTodo(){
   refrescarTimeline();
 }
 
-// ===== 13. AUDIO A WAV =====
-function audioBufferAWav(audioBuffer){
-  const numCanales = audioBuffer.numberOfChannels;
-  const frecuenciaMuestreo = audioBuffer.sampleRate;
-  const numMuestras = audioBuffer.length;
-  const bloqueAlineado = numCanales * 2;
-  const tamanoDatos = numMuestras * bloqueAlineado;
-  const buffer = new ArrayBuffer(44 + tamanoDatos);
-  const vista = new DataView(buffer);
-
-  function escribirCadena(offset, cadena){
-    for (let i = 0; i < cadena.length; i++) vista.setUint8(offset + i, cadena.charCodeAt(i));
-  }
-
-  escribirCadena(0, "RIFF");
-  vista.setUint32(4, 36 + tamanoDatos, true);
-  escribirCadena(8, "WAVE");
-  escribirCadena(12, "fmt ");
-  vista.setUint32(16, 16, true);
-  vista.setUint16(20, 1, true);
-  vista.setUint16(22, numCanales, true);
-  vista.setUint32(24, frecuenciaMuestreo, true);
-  vista.setUint32(28, frecuenciaMuestreo * bloqueAlineado, true);
-  vista.setUint16(32, bloqueAlineado, true);
-  vista.setUint16(34, 16, true);
-  escribirCadena(36, "data");
-  vista.setUint32(40, tamanoDatos, true);
-
-  const canales = [];
-  for (let c = 0; c < numCanales; c++) canales.push(audioBuffer.getChannelData(c));
-
-  let offset = 44;
-  for (let i = 0; i < numMuestras; i++){
-    for (let c = 0; c < numCanales; c++){
-      let muestra = Math.max(-1, Math.min(1, canales[c][i]));
-      muestra = muestra < 0 ? muestra * 0x8000 : muestra * 0x7fff;
-      vista.setInt16(offset, muestra, true);
-      offset += 2;
-    }
-  }
-  return new Blob([vista], { type: "audio/wav" });
-}
-
-// ===== 14. PLAN DE EXPORTACIÓN =====
-function calcularPlanDeExportacion(){
-  const instantesClick = [];
-  let acumulado = 0;
-  estado.imagenes.forEach((item, indice) => {
-    acumulado += item.duracion;
-    if (indice < estado.imagenes.length - 1) instantesClick.push(acumulado);
-  });
-  return { instantesClick, duracionTotal: acumulado };
-}
-
-// ===== 15. MEMORIA =====
-async function comprobarMemoriaSuficiente(){
-  const [ancho, alto] = dimensionesActuales();
-  const { duracionTotal } = calcularPlanDeExportacion();
-  if (estado.calidad === "4k" && (estado.imagenes.length > 40 || duracionTotal > 90)){
-    return await pedirConfirmacion(`Exportando ${estado.imagenes.length} imágenes en 4K (${ancho}×${alto}px, ${duracionTotal.toFixed(1)}s). Puede agotar la memoria. ¿Continuar?`);
-  }
-  return true;
-}
-
-// ===== 16. EXPORTACIÓN =====
-let ffmpeg = null;
-let ffmpegCargado = false;
-
-async function asegurarFFmpegCargado(actualizarEtapa){
-  if (ffmpegCargado) return;
-  if (!FFmpeg) await cargarLibreriaFFmpeg();
-
-  ffmpeg = new FFmpeg();
-  ffmpeg.on("log", ({ message }) => {});
-  ffmpeg.on("progress", ({ progress }) => {
-    if (progress >= 0 && progress <= 1) {
-      actualizarBarraExportacion(60 + progress * 35, "Codificando…");
-    }
-  });
-
-  actualizarEtapa("Descargando FFmpeg (30 MB)…");
-  const base = "https://unpkg.com/@ffmpeg/core@0.11.0/dist/esm";
-  await ffmpeg.load({
-    coreURL: await toBlobURL(`${base}/ffmpeg-core.js`, "text/javascript"),
-    wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, "application/wasm"),
-  });
-  ffmpegCargado = true;
-}
-
+// ===== EXPORTACIÓN (USANDO MediaRecorder) =====
 function actualizarBarraExportacion(porcentaje, etapa){
   elExportBarra.style.width = Math.min(100, Math.max(0, porcentaje)) + "%";
   elExportPorcentaje.textContent = Math.round(porcentaje) + "%";
@@ -859,92 +620,73 @@ elBtnExportar.addEventListener("click", exportarVideo);
 async function exportarVideo(){
   if (estado.imagenes.length === 0 || estado.exportando) return;
 
-  const continuar = await comprobarMemoriaSuficiente();
-  if (!continuar) return;
-
   estado.exportando = true;
   estado.cancelarExportacion = false;
   elBtnExportar.disabled = true;
   elExportBar.classList.add("visible");
   actualizarBarraExportacion(0, "Iniciando…");
 
-  try{
-    await asegurarFFmpegCargado((texto) => actualizarBarraExportacion(2, texto));
-    if (estado.cancelarExportacion) throw new Error("cancelado");
-
+  try {
     const [ancho, alto] = dimensionesActuales();
-    const { instantesClick, duracionTotal } = calcularPlanDeExportacion();
-
-    // 16.1 Generar fotogramas
-    actualizarBarraExportacion(5, "Preparando fotogramas…");
-    const canvasExport = document.createElement("canvas");
-    canvasExport.width = ancho;
-    canvasExport.height = alto;
-    const ctxExport = canvasExport.getContext("2d");
-
-    const nombresImagen = {};
-    let contadorImg = 0;
-    for (const item of estado.imagenes){
+    const duracionTotal = estado.imagenes.reduce((acc, it) => acc + it.duracion, 0);
+    
+    actualizarBarraExportacion(5, "Preparando canvas...");
+    const canvas = document.createElement("canvas");
+    canvas.width = ancho;
+    canvas.height = alto;
+    const ctx = canvas.getContext("2d");
+    
+    const stream = canvas.captureStream(FPS);
+    const recorder = new MediaRecorder(stream, {
+      mimeType: 'video/webm;codecs=vp9',
+      videoBitsPerSecond: 5000000
+    });
+    
+    const chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.start();
+    
+    let tiempoRenderizado = 0;
+    let totalFrames = 0;
+    
+    for (const item of estado.imagenes) {
       if (estado.cancelarExportacion) throw new Error("cancelado");
-      dibujarImagenEnContexto(ctxExport, item.img, ancho, alto, "cover");
-      const blob = await new Promise(res => canvasExport.toBlob(res, "image/jpeg", 0.92));
-      const nombreArchivo = `img${pad(contadorImg, 4)}.jpg`;
-      await ffmpeg.writeFile(nombreArchivo, new Uint8Array(await blob.arrayBuffer()));
-      nombresImagen[item.id] = nombreArchivo;
-      contadorImg++;
-      actualizarBarraExportacion(5 + (contadorImg / estado.imagenes.length) * 20, `Fotogramas ${contadorImg}/${estado.imagenes.length}`);
+      
+      const frames = Math.round(item.duracion * FPS);
+      for (let f = 0; f < frames; f++) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, ancho, alto);
+        dibujarImagenEnContexto(ctx, item.img, ancho, alto);
+        totalFrames++;
+      }
+      
+      tiempoRenderizado += item.duracion;
+      const progreso = (tiempoRenderizado / duracionTotal) * 70 + 10;
+      actualizarBarraExportacion(progreso, `Renderizando ${Math.round(tiempoRenderizado)}s de ${duracionTotal.toFixed(1)}s`);
     }
-
-    // 16.2 Construir lista
-    actualizarBarraExportacion(26, "Montando timeline…");
-    let listaTexto = "";
-    for (const item of estado.imagenes){
-      listaTexto += `file '${nombresImagen[item.id]}'\nduration ${item.duracion.toFixed(6)}\n`;
-    }
-    const ultimoItem = estado.imagenes[estado.imagenes.length - 1];
-    listaTexto += `file '${nombresImagen[ultimoItem.id]}'\n`;
-    await ffmpeg.writeFile("lista.txt", new TextEncoder().encode(listaTexto));
-
-    await ffmpeg.exec([
-      "-f", "concat", "-safe", "0", "-i", "lista.txt",
-      "-r", String(FPS),
-      "-pix_fmt", "yuv420p",
-      "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
-      "video_sin_audio.mp4",
-    ]);
-
-    // 16.3 Generar audio
-    actualizarBarraExportacion(30, "Generando audio…");
-    const offlineCtx = new OfflineAudioContext(2, Math.ceil(44100 * (duracionTotal + 0.3)), 44100);
-    instantesClick.forEach(t => programarClickObturador(offlineCtx, t, estado.tipoObturador));
-
-    const bufferRenderizado = await offlineCtx.startRendering();
-    const blobWav = audioBufferAWav(bufferRenderizado);
-    await ffmpeg.writeFile("audio.wav", new Uint8Array(await blobWav.arrayBuffer()));
-
-    if (estado.cancelarExportacion) throw new Error("cancelado");
-
-    // 16.4 Mezclar
-    actualizarBarraExportacion(70, "Mezclando…");
-    await ffmpeg.exec([
-      "-i", "video_sin_audio.mp4", "-i", "audio.wav",
-      "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
-      "-shortest",
-      "salida_final.mp4",
-    ]);
-
-    const datosMp4 = await ffmpeg.readFile("salida_final.mp4");
-    descargarArchivo(new Blob([datosMp4.buffer], { type: "video/mp4" }), nombreDeSalida("mp4"));
-
+    
+    recorder.stop();
+    actualizarBarraExportacion(85, "Finalizando...");
+    
+    await new Promise(resolve => { recorder.onstop = resolve; });
+    
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `video-${new Date().toISOString().slice(0,10)}.webm`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    
     actualizarBarraExportacion(100, "¡Listo!");
-    mostrarAviso("Vídeo exportado correctamente.");
-
-  } catch (err){
-    if (err && err.message === "cancelado"){
+    mostrarAviso("✅ Vídeo exportado correctamente.");
+    
+  } catch (err) {
+    if (err.message === "cancelado") {
       mostrarAviso("Exportación cancelada.");
     } else {
       console.error(err);
-      mostrarError(`Error: ${err && err.message ? err.message : err}`);
+      mostrarError(`Error: ${err.message}`);
     }
   } finally {
     estado.exportando = false;
@@ -953,24 +695,7 @@ async function exportarVideo(){
   }
 }
 
-function nombreDeSalida(extension){
-  const fecha = new Date();
-  const marca = `${fecha.getFullYear()}${pad(fecha.getMonth()+1,2)}${pad(fecha.getDate(),2)}-${pad(fecha.getHours(),2)}${pad(fecha.getMinutes(),2)}`;
-  return `contactor-${marca}.${extension}`;
-}
-
-function descargarArchivo(blob, nombre){
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = nombre;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
-}
-
-// ===== 17. ARRANQUE =====
+// ===== ARRANQUE =====
 refrescarTodo();
 </script>
 </body>
